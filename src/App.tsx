@@ -5,13 +5,13 @@ import "primeflex/primeflex.css";
 import "./styles/globals.css";
 
 import { Navbar } from "./components/Navbar";
-import { CustomersPage } from "./pages/customers";
+import { Routes } from "./routes";
 
 function App() {
   return (
     <>
       <Navbar />
-      <CustomersPage />
+      <Routes />
     </>
   )
 }
