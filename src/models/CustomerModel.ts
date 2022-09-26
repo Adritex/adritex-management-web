@@ -1,11 +1,11 @@
 export class CustomerModel {
-    uid: string;
+    id: string;
     name: string;
     cnpj: string;
     initials: string;
 
     constructor(uid: string, name: string, cnpj: string, initials: string) {
-        this.uid = uid;
+        this.id = uid;
         this.name = name;
         this.cnpj = cnpj;
         this.initials = initials;
@@ -13,7 +13,7 @@ export class CustomerModel {
 
     static clone(customer: CustomerModel) {
         return new CustomerModel(
-            customer.uid,
+            customer.id,
             customer.name,
             customer.cnpj,
             customer.initials,
