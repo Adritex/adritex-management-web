@@ -62,13 +62,16 @@ export function PayrollModal(props: PayrollModalProps) {
 
     function onSubmit(data: PayrollModel) {
         setFormData(data);
+        data = PayrollModel.clone(data);
         data.date = date;
         data.overtime = overtime;
         data.setAttendanceAward(attendanceAward);
         data.setProductionAward(productionAward);
         data.setSalary(salary);
-
-        let route = data?.uid ? `/api/financial/payrolls/${data?.uid}` : "/api/financial/payrolls";
+        console.log(data);
+        let route = data?.id 
+            ? `http://localhost:3000/api/financial/payrolls/${data?.id}` 
+            : "http://localhost:3000/api/financial/payrolls";
 
         fetch(route, {
             method: "POST",
@@ -76,9 +79,9 @@ export function PayrollModal(props: PayrollModalProps) {
             body: JSON.stringify(data)
         })
             .then(response => response.json())
-            .then((response: ResponseModel<PayrollModel>) => {
-                const employee = props.employees.find(item => item.uid == selectedEmployee);
-                const payroll = PayrollModel.clone(response.data);
+            .then((response: PayrollModel) => {
+                const employee = props.employees.find(item => item.id == selectedEmployee);
+                const payroll = PayrollModel.clone(response);
 
                 if (employee) {
                     payroll.setEmployee(employee);
@@ -124,7 +127,7 @@ export function PayrollModal(props: PayrollModalProps) {
                 setEmployeeOptions(props.employees.map(employee => {
                     return {
                         label: employee.name,
-                        value: employee.uid
+                        value: employee.id
                     }
                 }));
             }}
@@ -144,7 +147,7 @@ export function PayrollModal(props: PayrollModalProps) {
             }}>
             <div className="pt-4">
                 <form onSubmit={props.handleSubmit(onSubmit)} className="formgrid grid p-fluid">
-                    <Controller name="uid" control={props.control} render={({ field, fieldState }) => (
+                    <Controller name="id" control={props.control} render={({ field, fieldState }) => (
                         <InputText
                             id={field.name} {...field} autoFocus hidden
                         />
