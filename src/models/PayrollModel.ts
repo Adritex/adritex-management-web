@@ -1,7 +1,7 @@
 import { EmployeeModel } from "./EmployeeModel";
 
 export class PayrollModel {
-    uid: string;
+    id: string;
     employeeUid: string;
     employee: EmployeeModel | undefined;
     salary: number;
@@ -11,10 +11,10 @@ export class PayrollModel {
     salaryToBePaid: number | undefined;
     date: string;
 
-    constructor(uid: string, employeeUid: string,
+    constructor(id: string, employeeUid: string,
         salary: number, attendanceAward: number,
         productionAward: number, overtime: number, date: string) {
-        this.uid = uid;
+        this.id = id;
         this.employeeUid = employeeUid;
         this.salary = salary;
         this.attendanceAward = attendanceAward;
@@ -53,7 +53,7 @@ export class PayrollModel {
 
     static clone(payroll: PayrollModel) {
         return new PayrollModel(
-            payroll.uid,
+            payroll.id,
             payroll.employeeUid,
             payroll.salary,
             payroll.attendanceAward,

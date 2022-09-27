@@ -56,17 +56,22 @@ export function EmployeeModal(props: EmployeeModalProps) {
         data.birthDate = date;
         data.active = checked;
 
-        let route = data?.uid ? "/api/employees/update" : "/api/employees/add";
+        let route = "http://localhost:3000/api/employees";
+        if(data?.id){
+            route += `/${data?.id}`;
+        }
+        
         props.setDisplayEmployeeModal(false);
 
         fetch(route, {
             method: "POST",
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         })
             .then(response => response.json())
-            .then((response: ResponseModel<EmployeeModel>) => {
+            .then((response: EmployeeModel) => {
                 props.reset();
-                props.onClickSave(response.data);
+                props.onClickSave(response);
                 setDate(null);
                 setChecked(false);
             });
@@ -97,7 +102,7 @@ export function EmployeeModal(props: EmployeeModalProps) {
             }}>
             <div className="pt-4">
                 <form onSubmit={props.handleSubmit(onSubmit)} className="formgrid grid p-fluid">
-                    <Controller name="uid" control={props.control} render={({ field, fieldState }) => (
+                    <Controller name="id" control={props.control} render={({ field, fieldState }) => (
                         <InputText
                             id={field.name} {...field} autoFocus hidden
                         />

@@ -1,12 +1,12 @@
 export class EmployeeModel {
-    uid: string;
+    id: string;
     name: string;
     cpf: string;
     birthDate: string;
     active: boolean;
 
-    constructor(uid: string, name: string, cpf: string, birthDate: string, active: boolean) {
-        this.uid = uid;
+    constructor(id: string, name: string, cpf: string, birthDate: string, active: boolean) {
+        this.id = id;
         this.name = name;
         this.cpf = cpf;
         this.birthDate = birthDate;
@@ -15,7 +15,7 @@ export class EmployeeModel {
 
     static clone(employee: EmployeeModel) {
         return new EmployeeModel(
-            employee.uid,
+            employee.id,
             employee.name,
             employee.cpf,
             employee.birthDate,

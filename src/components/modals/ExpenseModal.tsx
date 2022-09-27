@@ -56,11 +56,12 @@ export function ExpenseModal(props: ExpenseModalProps) {
         data.date = date;
         data.value = value;
 
-        let route = data?.uid ? "/api/financial/expenses/update" : "/api/financial/expenses/add";
+        let route = data?.uid ? `/api/financial/expenses/${data?.uid}` : "/api/financial/expenses";
         props.setDisplayExpenseModal(false);
 
         fetch(route, {
             method: "POST",
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         })
             .then(response => response.json())

@@ -48,7 +48,7 @@ export function ProductModal(props: ProductModalProps) {
         setCustomerOptions(props.customers.map(customer => {
             return {
                 label: customer.name,
-                value: customer.uid
+                value: customer.id
             }
         }));
     }, [])
@@ -56,7 +56,7 @@ export function ProductModal(props: ProductModalProps) {
     function onSubmit(data: ProductModel) {
         setFormData(data);
 
-        let route = data?.uid ? "/api/demand/products/update" : "/api/demand/products/add";
+        let route = data?.uid ? `/api/demand/products/${data?.uid}` : "/api/demand/products";
         const newProduct = ProductModel.clone(data);
         newProduct.image = image;
         newProduct.quantity = quantity;
@@ -64,11 +64,12 @@ export function ProductModal(props: ProductModalProps) {
         
         fetch(route, {
             method: "POST",
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newProduct)
         })
             .then(response => response.json())
             .then((response: ResponseModel<ProductModel>) => {
-                const customer = props.customers.find(item => item.uid == selectedCustomer);
+                const customer = props.customers.find(item => item.id == selectedCustomer);
                 const product = ProductModel.clone(response.data);
 
                 if (customer) {
@@ -108,7 +109,7 @@ export function ProductModal(props: ProductModalProps) {
                 setCustomerOptions(props.customers.map(customer => {
                     return {
                         label: customer.name,
-                        value: customer.uid
+                        value: customer.id
                     }
                 }));
             }}

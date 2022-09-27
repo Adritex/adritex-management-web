@@ -1,12 +1,12 @@
 export class ExpenseModel {
-    uid: string;
+    id: string;
     name: string;
     description: string;
     value: number;
     date: string;
 
-    constructor(uid: string, name: string, description: string, value: number, date: string) {
-        this.uid = uid;
+    constructor(id: string, name: string, description: string, value: number, date: string) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.value = value;
@@ -15,7 +15,7 @@ export class ExpenseModel {
 
     static clone(expense: ExpenseModel) {
         return new ExpenseModel(
-            expense.uid,
+            expense.id,
             expense.name,
             expense.description,
             expense.value,

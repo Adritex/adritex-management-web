@@ -68,10 +68,11 @@ export function PayrollModal(props: PayrollModalProps) {
         data.setProductionAward(productionAward);
         data.setSalary(salary);
 
-        let route = data?.uid ? "/api/financial/payrolls/update" : "/api/financial/payrolls/add";
+        let route = data?.uid ? `/api/financial/payrolls/${data?.uid}` : "/api/financial/payrolls";
 
         fetch(route, {
             method: "POST",
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         })
             .then(response => response.json())

@@ -2,15 +2,15 @@ import { PriorityType } from "../enums/PriorityType";
 import { ProductModel } from "./ProductModel";
 
 export class ProductOrderModel {
-    uid: string;
+    id: string;
     productUid: string;
     product: ProductModel;
     priority: PriorityType;
     priorityStr: string | undefined;
     order: number;
 
-    constructor(uid: string, productUid: string, priority: PriorityType, order: number) {
-        this.uid = uid;
+    constructor(id: string, productUid: string, priority: PriorityType, order: number) {
+        this.id = id;
         this.productUid = productUid;
         this.priority = priority;
         this.order = order;
@@ -27,7 +27,7 @@ export class ProductOrderModel {
 
     setProduct(product: ProductModel) {
         this.product = product;
-        this.productUid = product.uid;
+        this.productUid = product.id;
     }
 
     setPriority(priority: string) {
@@ -44,7 +44,7 @@ export class ProductOrderModel {
 
     static clone(productOrder: ProductOrderModel) {
         const productOrderResponse = new ProductOrderModel(
-            productOrder.uid,
+            productOrder.id,
             productOrder.productUid,
             productOrder.priority,
             productOrder.order

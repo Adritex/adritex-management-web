@@ -2,7 +2,7 @@ import { StatusType } from "../enums/StatusType";
 import { CustomerModel } from "./CustomerModel";
 
 export class ProductModel {
-    uid: string;
+    id: string;
     customer: CustomerModel | undefined;
     customerUid: string;
     reference: string;
@@ -16,12 +16,12 @@ export class ProductModel {
     date: string;
 
     constructor(
-        uid: string, customerUid: string,
+        id: string, customerUid: string,
         reference: string, of: string,
         description: string, quantity: number,
         unitaryValue: number, date: string, status: StatusType
     ) {
-        this.uid = uid;
+        this.id = id;
         this.customerUid = customerUid;
         this.reference = reference;
         this.of = of;
@@ -40,7 +40,7 @@ export class ProductModel {
 
     setCustomer(customer: CustomerModel) {
         this.customer = customer;
-        this.customerUid = customer.uid;
+        this.customerUid = customer.id;
     }
 
     setQuantity(quantity: number) {
@@ -59,7 +59,7 @@ export class ProductModel {
 
     static clone(product: ProductModel) {
         const clone = new ProductModel(
-            product.uid,
+            product.id,
             product.customerUid,
             product.reference,
             product.of,
