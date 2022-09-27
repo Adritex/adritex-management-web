@@ -56,7 +56,9 @@ export function ExpenseModal(props: ExpenseModalProps) {
         data.date = date;
         data.value = value;
 
-        let route = data?.uid ? `/api/financial/expenses/${data?.uid}` : "/api/financial/expenses";
+        let route = data?.id 
+            ? `http://localhost:3000/api/financial/expenses/${data?.id}` 
+            : "http://localhost:3000/api/financial/expenses";
         props.setDisplayExpenseModal(false);
 
         fetch(route, {
@@ -65,9 +67,9 @@ export function ExpenseModal(props: ExpenseModalProps) {
             body: JSON.stringify(data)
         })
             .then(response => response.json())
-            .then((response: ResponseModel<ExpenseModel>) => {
+            .then((response: ExpenseModel) => {
                 props.reset();
-                props.onClickSave(response.data);
+                props.onClickSave(response);
                 setDate(null);
                 setValue(0);
             });
@@ -98,7 +100,7 @@ export function ExpenseModal(props: ExpenseModalProps) {
             }}>
             <div className="pt-4">
                 <form onSubmit={props.handleSubmit(onSubmit)} className="formgrid grid p-fluid">
-                    <Controller name="uid" control={props.control} render={({ field, fieldState }) => (
+                    <Controller name="id" control={props.control} render={({ field, fieldState }) => (
                         <InputText
                             id={field.name} {...field} autoFocus hidden
                         />
