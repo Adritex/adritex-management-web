@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.5.25",
     "primeflex": "^3.2.1",
     "primeicons": "^6.0.1",
     "primereact": "^8.6.1",
