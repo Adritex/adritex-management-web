@@ -4,14 +4,12 @@ import "primeicons/primeicons.css";
 import "primeflex/primeflex.css";
 import "./styles/globals.css";
 
-import { Navbar } from "./components/Navbar";
-import { Routes } from "./routes";
+import { AppRoutes } from "./AppRoutes";
 
 function App() {
   return (
     <>
-      <Navbar />
-      <Routes />
+      <AppRoutes />
     </>
   )
 }
