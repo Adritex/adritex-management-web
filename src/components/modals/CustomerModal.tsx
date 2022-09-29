@@ -40,7 +40,7 @@ export function CustomerModal(props: CustomerModalProps) {
         let route: string = CUSTOMER_ROUTE;
         route += data.id ? `/${data.id}` : '';
         
-        fetch(CUSTOMER_ROUTE, {
+        fetch(route, {
             method: "POST",
             body: JSON.stringify(data),
             headers: { 'Content-Type': 'application/json' },
