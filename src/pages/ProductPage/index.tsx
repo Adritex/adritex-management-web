@@ -130,7 +130,7 @@ function ProductPage() {
 
     function onSave(product: ProductModel) {
         const filteredProducts = products.filter(item => item.id != product.id);
-
+        console.log(product)
         setSelectedProducts([]);
         setProducts([...filteredProducts, product]);
 

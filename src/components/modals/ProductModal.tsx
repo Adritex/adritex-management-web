@@ -81,7 +81,7 @@ export function ProductModal(props: ProductModalProps) {
             }
 
             props.setDisplayProductModal(false);
-            props.onClickSave(product);
+            props.onClickSave(responseProduct);
             props.reset(ProductModel.empty());
             setImage("");
             setAmount(0);
@@ -229,6 +229,7 @@ export function ProductModal(props: ProductModalProps) {
                                     var value = Number(event.value);
                                     setQuantity(value);
                                     setAmount((value * unitaryValue));
+                                    props.setValue("quantity", value);
                                 }}
                             />
                         )} />
@@ -254,6 +255,7 @@ export function ProductModal(props: ProductModalProps) {
                                     var value = Number(event.value);
                                     setUnitaryValue(value);
                                     setAmount((quantity * value));
+                                    props.setValue("unitaryValue", value);
                                 }}
                             />
                         )} />
