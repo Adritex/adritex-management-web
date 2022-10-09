@@ -1,9 +1,12 @@
 import { Button } from "primereact/button";
 import { Menubar } from "primereact/menubar";
+import { useContext } from "react";
 import { useEffect, useState } from "react";
 import logo from "../../public/adritex_logo.png"
+import { AuthContext } from "../contexts/authContext";
 
 export function Navbar() {
+    const { user, logout } = useContext(AuthContext);
     const [pages, setPages] = useState<any[]>([]);
 
     useEffect(() => {
@@ -31,8 +34,7 @@ export function Navbar() {
 
     async function onLogout(event: any) {
         try {
-            event.preventDefault();
-
+            logout();
         } catch (error) {
             throw error;
         }
@@ -41,5 +43,7 @@ export function Navbar() {
     const start = <img alt="logo" src={logo} height="40" className="mr-2"></img>;
     const end = <Button label="Sair" icon="pi pi-fw pi-power-off" className="p-button-outlined p-button-secondary" onClick={onLogout} />;
 
-    return <Menubar model={pages} start={start} end={end} />
+    return (
+        user ? (<Menubar model={pages} start={start} end={end} />) : (<></>)
+    )
 }

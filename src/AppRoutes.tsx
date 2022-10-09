@@ -15,11 +15,13 @@ import ProductPage from './pages/ProductPage';
 import OrderPage from './pages/OrderPage';
 
 import { Private } from './components/Private';
+import { Navbar } from './components/Navbar';
 
 export function AppRoutes() {
     return (
         <Router>
             <AuthProvider>
+                <Navbar />
                 <Routes>
                     <Route path='/login' element={<LoginPage />} />
                     <Route path='/' element={
