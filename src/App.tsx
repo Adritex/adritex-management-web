@@ -5,10 +5,12 @@ import "primeflex/primeflex.css";
 import "./styles/globals.css";
 
 import { AppRoutes } from "./AppRoutes";
+import { Navbar } from "./components/Navbar";
 
 function App() {
   return (
     <>
+      {location.pathname == "/login" ? (<></>) : (<Navbar />)}
       <AppRoutes />
     </>
   )

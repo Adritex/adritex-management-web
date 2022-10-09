@@ -8,7 +8,7 @@ import { Button } from "primereact/button";
 import { classNames } from 'primereact/utils';
 import { Checkbox } from 'primereact/checkbox';
 import { EmployeeModel } from "../../models/employeeModel";
-import { EMPLOYEE_ROUTE } from "../../configs/IntegrationServer";
+import { EMPLOYEE_ROUTE } from "../../server/configs";
 import {
     Controller,
     Control,

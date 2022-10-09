@@ -1,6 +1,8 @@
 import { createContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserModel } from '../models/userModel';
+import { fetchServer } from '../server';
+import { LOGIN_ROUTE, PING_ROUTE } from '../server/configs';
 
 export const AuthContext = createContext<any>({});
 
@@ -14,20 +16,40 @@ export function AuthProvider({ children }: any) {
 
         if (recoveredUser) {
             setUser(JSON.parse(recoveredUser));
-        }
 
-        setLoading(false);
+            fetchServer({
+                route: PING_ROUTE,
+                method: "GET",
+                user: JSON.parse(recoveredUser),
+            }).then(response => {
+                setUser(JSON.parse(recoveredUser));
+            }).catch(() => {
+                logout();
+            }).finally(() => {
+                setLoading(false);
+            })
+        } else {
+            logout();
+            setLoading(false);
+        }
     }, []);
 
     function login(user: UserModel) {
-        if (user.password === 'secret') {
-            setUser(user);
-            user.password = '';
-
-            localStorage.setItem('user', JSON.stringify(user));
-
-            navigate('/');
-        }
+        fetch(LOGIN_ROUTE, {
+            method: "POST",
+            body: JSON.stringify(user),
+            headers: { 'Content-Type': 'application/json' },
+        }).then(response => {
+            return response.json();
+        }).then(response => {
+            if (response.message) {
+                console.log("Erro");
+            } else {
+                localStorage.setItem('user', JSON.stringify(response));
+                setUser(response);
+                navigate("/");
+            }
+        });
     }
 
     function logout() {

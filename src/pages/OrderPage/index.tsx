@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { StatusType } from "../../enums/statusType";
 import { PriorityType } from "../../enums/priorityType";
 import { ProductModel } from "../../models/productModel";
 import { ProductOrderModel } from "../../models/productOrderModel";
-import { ORDERS_ROUTE, PRODUCT_ORDERS_ROUTE } from "../../configs/IntegrationServer";
+import { ORDERS_ROUTE, PRODUCT_ORDERS_ROUTE } from "../../server/configs";
 
 import { PickList, PickListChangeParams } from 'primereact/picklist';
 import { SelectButton } from 'primereact/selectbutton';
@@ -11,9 +11,12 @@ import { Image } from 'primereact/image';
 import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
 import { ConfirmFinishedOrderModal } from "../../components/modals/ConfirmFinishedOrderModal";
+import { AuthContext } from "../../contexts/authContext";
+import { fetchServer } from "../../server";
 
 function OrderPage() {
     const toast = useRef<any>(null);
+    const { user } = useContext(AuthContext);
     const [source, setSource] = useState<ProductModel[]>([]);
     const [target, setTarget] = useState<ProductModel[]>([]);
     const [productOrders, setProductOrders] = useState<ProductOrderModel[]>([]);
@@ -22,23 +25,23 @@ function OrderPage() {
     const priorityOptions = ["B", "M", "A"];
 
     useEffect(() => {
-        fetch(PRODUCT_ORDERS_ROUTE, {
+        fetchServer({
+            route: PRODUCT_ORDERS_ROUTE,
             method: "GET",
-        }).then(response => {
-            return response.json();
+            user: user,
         }).then((products: any[]) => {
-            fetch(ORDERS_ROUTE, {
-                method: "GET"
-            }).then(response => {
-                return response.json();
+            fetchServer({
+                route: ORDERS_ROUTE,
+                method: "GET",
+                user: user,
             }).then((productOrders: any[]) => {
                 const targetProducts: ProductModel[] = [];
                 const targetProductOrders: ProductOrderModel[] = [];
-                
+
                 productOrders.forEach((productOrderItem: any) => {
                     const productOrder = ProductOrderModel.clone(productOrderItem);
                     const product = products.find(item => item.id == productOrder.idProduct);
-                    
+
                     if (product) {
                         productOrder.product = product;
                         targetProducts.push(product);
@@ -195,20 +198,22 @@ function OrderPage() {
     }
 
     function onConfirmFinishedOrder(date: string) {
-        fetch(`${ORDERS_ROUTE}/${selectedProductOrder.id}/finish`, {
+        fetchServer({
+            route: `${ORDERS_ROUTE}/${selectedProductOrder.id}/finish`,
             method: "POST",
-            body: JSON.stringify({
-                date: date,
-            }),
-            headers: { 'Content-Type': 'application/json' },
-        }).then(response => {
-            return response.json();
+            user: user,
+            body: JSON.stringify({ date: date })
         }).then((response) => {
             const productOrder: ProductOrderModel = response;
             const filteredTarget = target.filter(item => item.id != productOrder.idProduct);
             setTarget(filteredTarget);
 
-            toast.current.show({ severity: 'success', summary: 'Sucesso!', detail: 'Ordem de produção finalizada com sucesso!', life: 3000 });
+            toast.current.show({
+                severity: 'success',
+                summary: 'Sucesso!',
+                detail: 'Ordem de produção finalizada com sucesso!',
+                life: 3000
+            });
         });
     }
 
@@ -223,16 +228,18 @@ function OrderPage() {
                             label="Salvar alterações"
                             icon="pi pi-check"
                             onClick={() => {
-                                fetch(ORDERS_ROUTE, {
+                                fetchServer({
+                                    route: ORDERS_ROUTE,
                                     method: "POST",
-                                    body: JSON.stringify({
-                                        orders: productOrders
-                                    }),
-                                    headers: { 'Content-Type': 'application/json' },
-                                }).then(response => {
-                                    return response.json();
-                                }).then(data => {
-                                    toast.current.show({ severity: 'success', summary: 'Sucesso!', detail: 'Ordem de produção alterada!', life: 3000 });
+                                    user: user,
+                                    body: JSON.stringify({ orders: productOrders })
+                                }).then(() => {
+                                    toast.current.show({
+                                        severity: 'success',
+                                        summary: 'Sucesso!',
+                                        detail: 'Ordem de produção alterada!',
+                                        life: 3000
+                                    });
                                 })
                             }}
                         />

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ProductModel } from "../../models/productModel";
 import { CustomerModel } from "../../models/customerModel";
-import { PRODUCT_ROUTE } from "../../configs/IntegrationServer";
+import { PRODUCT_ROUTE } from "../../server/configs";
 
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';

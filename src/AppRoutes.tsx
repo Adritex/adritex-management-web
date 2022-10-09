@@ -40,7 +40,7 @@ export function AppRoutes() {
                     <Route path='/pedidos/produtos' element={
                         <Private><ProductPage /></Private>
                     } />
-                    <Route path='/pedidos/ordem' element={
+                    <Route path='/pedidos/ordens' element={
                         <Private><OrderPage /></Private>
                     } />
                 </Routes>

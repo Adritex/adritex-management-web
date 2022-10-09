@@ -12,7 +12,7 @@ import { Button } from 'primereact/button';
 import { classNames } from 'primereact/utils';
 
 function LoginPage() {
-    const { authenticated, login } = useContext(AuthContext);
+    const { user, login } = useContext(AuthContext);
     const [formData, setFormData] = useState({});
     const defaultValues = UserModel.empty();
     const { control, formState: { errors }, handleSubmit, reset } = useForm({ defaultValues });

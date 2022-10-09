@@ -10,10 +10,14 @@ import { Toast } from 'primereact/toast';
 import { DataTableHeader } from "../../components/DataTableHeader";
 import { PayrollModal } from "../../components/modals/PayrollModal";
 import { DeleteModal } from "../../components/modals/DeleteModal";
-import { EMPLOYEE_ROUTE, PAYROLLS_ROUTE } from '../../configs/IntegrationServer';
+import { EMPLOYEE_ROUTE, PAYROLLS_ROUTE } from '../../server/configs';
+import { useContext } from 'react';
+import { AuthContext } from '../../contexts/authContext';
+import { fetchServer } from '../../server';
 
 function PaymentPage() {
     const toast = useRef<any>(null);
+    const { user } = useContext(AuthContext);
     const [payrollModalText, setPayrollModalText] = useState<string>("");
     const [displayDeleteModal, setDisplayDeleteModal] = useState<boolean>(false);
     const [displayPayrollModal, setDisplayPayrollModal] = useState<boolean>(false);
@@ -30,19 +34,19 @@ function PaymentPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch(PAYROLLS_ROUTE, {
-            method: "GET"
-        }).then(response => {
-            return response.json();
+        fetchServer({
+            route: PAYROLLS_ROUTE,
+            method: "GET",
+            user: user,
         }).then(response => {
             setPayrolls(response);
             setLoading(false);
-        })
+        });
 
-        fetch(EMPLOYEE_ROUTE, {
-            method: "GET"
-        }).then(response => {
-            return response.json();
+        fetchServer({
+            route: EMPLOYEE_ROUTE,
+            method: "GET",
+            user: user,
         }).then(response => {
             setEmployees(response);
             setLoading(false);
@@ -71,7 +75,7 @@ function PaymentPage() {
 
                     var selectedPayroll = PayrollModel.clone(selectedPayrolls[0]);
                     setPayroll(selectedPayroll);
-                    
+
                     if (selectedPayroll.id)
                         setValue("id", selectedPayroll.id);
                     if (selectedPayroll.employee)
@@ -119,12 +123,11 @@ function PaymentPage() {
     function onDelete(selectedPayrolls: PayrollModel[]) {
         const ids: string[] = selectedPayrolls.map(item => item.id);
 
-        fetch(PAYROLLS_ROUTE, {
+        fetchServer({
+            route: PAYROLLS_ROUTE,
             method: "DELETE",
-            body: JSON.stringify({ ids }),
-            headers: { 'Content-Type': 'application/json' },
-        }).then(response => {
-            return response.json();
+            user: user,
+            body: JSON.stringify({ ids })
         }).then(() => {
             const filteredPayrolls = payrolls.filter(
                 item => !ids.includes(item.id)
@@ -144,7 +147,7 @@ function PaymentPage() {
     function employeeName(rowData: PayrollModel) {
         const employee = employees.find(employee => employee.id == rowData.idEmployee);
 
-        if(employee) {
+        if (employee) {
             return employee.name;
         }
 
@@ -183,7 +186,7 @@ function PaymentPage() {
                         globalFilterFields={['name', 'description', 'value', 'date']} emptyMessage="Nenhum pagamento encontrado."
                         currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} entradas">
                         <Column selectionMode="multiple" headerStyle={{ width: '3em' }}></Column>
-                        <Column field="employee" header="Funcionário" sortable style={{ minWidth: '14rem' }} body={employeeName}/>
+                        <Column field="employee" header="Funcionário" sortable style={{ minWidth: '14rem' }} body={employeeName} />
                         <Column field="value" header="Valor" sortable style={{ minWidth: '14rem' }} body={balanceBodyTemplate} />
                         <Column field="date" header="Data" sortable style={{ minWidth: '14rem' }} body={dateBodyTemplate} />
                     </DataTable>

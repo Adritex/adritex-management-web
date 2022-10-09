@@ -1,10 +1,10 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useContext } from "react";
 import { useForm } from 'react-hook-form';
 import { StatusType } from "../../enums/statusType";
 import { ProductModel } from "../../models/productModel";
 import { CustomerModel } from "../../models/customerModel";
-import { PRODUCT_ROUTE } from "../../configs/IntegrationServer";
-import { CUSTOMER_ROUTE } from "../../configs/IntegrationServer";
+import { PRODUCT_ROUTE } from "../../server/configs";
+import { CUSTOMER_ROUTE } from "../../server/configs";
 
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
@@ -13,9 +13,12 @@ import { Toast } from 'primereact/toast';
 import { DataTableHeader } from "../../components/DataTableHeader";
 import { ProductModal } from "../../components/modals/ProductModal";
 import { DeleteModal } from "../../components/modals/DeleteModal";
+import { AuthContext } from "../../contexts/authContext";
+import { fetchServer } from "../../server";
 
 function ProductPage() {
     const toast = useRef<any>(null);
+    const { user } = useContext(AuthContext);
     const [productModalText, setProductModalText] = useState<string>("");
     const [displayDeleteModal, setDisplayDeleteModal] = useState<boolean>(false);
     const [displayProductModal, setDisplayProductModal] = useState<boolean>(false);
@@ -39,19 +42,19 @@ function ProductPage() {
     ];
 
     useEffect(() => {
-        fetch(PRODUCT_ROUTE, {
-            method: "GET"
-        }).then(response => {
-            return response.json();
+        fetchServer({
+            route: PRODUCT_ROUTE,
+            method: "GET",
+            user: user,
         }).then(response => {
             setProducts(response);
             setLoading(false);
         });
 
-        fetch(CUSTOMER_ROUTE, {
-            method: "GET"
-        }).then(response => {
-            return response.json();
+        fetchServer({
+            route: CUSTOMER_ROUTE,
+            method: "GET",
+            user: user,
         }).then(response => {
             setCustomers(response);
             setLoading(false);
@@ -145,12 +148,11 @@ function ProductPage() {
     function onDelete(selectedProducts: ProductModel[]) {
         const ids: string[] = selectedProducts.map(item => item.id);
 
-        fetch(PRODUCT_ROUTE, {
+        fetchServer({
+            route: PRODUCT_ROUTE,
             method: "DELETE",
-            body: JSON.stringify({ ids }),
-            headers: { 'Content-Type': 'application/json' },
-        }).then(response => {
-            return response.json();
+            user: user,
+            body: JSON.stringify({ ids })
         }).then(() => {
             const filteredProducts = products.filter(
                 item => !ids.includes(item.id)

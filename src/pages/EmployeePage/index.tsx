@@ -9,10 +9,14 @@ import { FilterMatchMode } from "primereact/api";
 import { DataTableHeader } from '../../components/DataTableHeader';
 import { EmployeeModal } from '../../components/modals/EmployeeModal';
 import { DeleteModal } from '../../components/modals/DeleteModal';
-import { EMPLOYEE_ROUTE } from '../../configs/IntegrationServer';
+import { EMPLOYEE_ROUTE } from '../../server/configs';
+import { useContext } from 'react';
+import { AuthContext } from '../../contexts/authContext';
+import { fetchServer } from '../../server';
 
 function EmployeePage() {
     const toast = useRef<any>(null);
+    const { user } = useContext(AuthContext);
     const [employeeModalText, setEmployeeModalText] = useState<string>("");
     const [displayDeleteModal, setDisplayDeleteModal] = useState<boolean>(false);
     const [displayEmployeeModal, setDisplayEmployeeModal] = useState<boolean>(false);
@@ -28,10 +32,10 @@ function EmployeePage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch(EMPLOYEE_ROUTE, {
-            method: "GET"
-        }).then(response => {
-            return response.json();
+        fetchServer({
+            route: EMPLOYEE_ROUTE,
+            method: "GET",
+            user: user,
         }).then(response => {
             setEmployees(response);
             setLoading(false);
@@ -123,12 +127,11 @@ function EmployeePage() {
     function onDelete(selectedEmployees: EmployeeModel[]) {
         const ids: string[] = selectedEmployees.map(employee => employee.id);
 
-        fetch(EMPLOYEE_ROUTE, {
+        fetchServer({
+            route: EMPLOYEE_ROUTE,
             method: "DELETE",
-            body: JSON.stringify({ ids }),
-            headers: { 'Content-Type': 'application/json' },
-        }).then(response => {
-            return response.json();
+            user: user,
+            body: JSON.stringify({ ids })
         }).then(() => {
             const filteredEmployees = employees.filter(employee =>
                 !ids.includes(employee.id));

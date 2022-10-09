@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { ExpenseModel } from "../../models/expenseModel";
-import { EXPENSE_ROUTE } from "../../configs/IntegrationServer";
+import { EXPENSE_ROUTE } from "../../server/configs";
 
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
@@ -10,9 +10,12 @@ import { DataTableHeader } from "../../components/DataTableHeader";
 import { ExpenseModal } from "../../components/modals/ExpenseModal";
 import { DeleteModal } from "../../components/modals/DeleteModal";
 import { Toast } from "primereact/toast";
+import { AuthContext } from "../../contexts/authContext";
+import { fetchServer } from "../../server";
 
 function ExpensePage() {
     const toast = useRef<any>(null);
+    const { user } = useContext(AuthContext);
     const [expenseModalText, setExpenseModalText] = useState<string>("");
     const [displayDeleteModal, setDisplayDeleteModal] = useState<boolean>(false);
     const [displayExpenseModal, setDisplayExpenseModal] = useState<boolean>(false);
@@ -27,10 +30,10 @@ function ExpensePage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch(EXPENSE_ROUTE, {
+        fetchServer({
+            route: EXPENSE_ROUTE,
             method: "GET",
-        }).then(response => {
-            return response.json();
+            user: user,
         }).then(response => {
             setExpenses(response);
             setLoading(false);
@@ -98,12 +101,11 @@ function ExpensePage() {
     function onDelete(selectedExpenses: ExpenseModel[]) {
         const ids: string[] = selectedExpenses.map(expense => expense.id);
 
-        fetch(EXPENSE_ROUTE, {
+        fetchServer({
+            route: EXPENSE_ROUTE,
             method: "DELETE",
-            body: JSON.stringify({ ids }),
-            headers: { 'Content-Type': 'application/json' },
-        }).then(response => {
-            return response.json();
+            user: user,
+            body: JSON.stringify({ ids })
         }).then(() => {
             const filteredExpenses = expenses.filter(
                 expense => !ids.includes(expense.id)

@@ -9,10 +9,14 @@ import { Toast } from 'primereact/toast';
 import { DataTableHeader } from "../../components/DataTableHeader";
 import { CustomerModal } from "../../components/modals/CustomerModal";
 import { DeleteModal } from "../../components/modals/DeleteModal";
-import { CUSTOMER_ROUTE } from "../../configs/IntegrationServer";
+import { CUSTOMER_ROUTE } from "../../server/configs";
+import { fetchServer } from "../../server";
+import { useContext } from "react";
+import { AuthContext } from "../../contexts/authContext";
 
 function CustomerPage() {
     const toast = useRef<any>(null);
+    const { user } = useContext(AuthContext);
     const [customerModalText, setCustomerModalText] = useState<string>("");
     const [displayDeleteModal, setDisplayDeleteModal] = useState<boolean>(false);
     const [displayCustomerModal, setDisplayCustomerModal] = useState<boolean>(false);
@@ -27,10 +31,10 @@ function CustomerPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch(CUSTOMER_ROUTE, {
-            method: "GET"
-        }).then(response => {
-            return response.json();
+        fetchServer({
+            route: CUSTOMER_ROUTE,
+            method: "GET",
+            user: user,
         }).then(response => {
             setCustomers(response);
             setLoading(false);
@@ -94,17 +98,16 @@ function CustomerPage() {
 
     function onDelete(selectedCustomers: CustomerModel[]) {
         const ids: string[] = selectedCustomers.map(customer => customer.id);
-        
-        fetch(CUSTOMER_ROUTE, {
+
+        fetchServer({
+            route: CUSTOMER_ROUTE,
             method: "DELETE",
-            body: JSON.stringify({ ids }),
-            headers: { 'Content-Type': 'application/json' },
-        }).then(response => {
-            return response.json();
+            user: user,
+            body: JSON.stringify({ ids })
         }).then(() => {
             const filteredCustomers = customers.filter(customer =>
                 !ids.includes(customer.id));
-            
+
             setCustomers(filteredCustomers);
 
             toast.current.show({

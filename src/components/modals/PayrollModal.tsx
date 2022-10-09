@@ -19,7 +19,7 @@ import {
     UseFormReset,
     UseFormSetValue
 } from 'react-hook-form';
-import { PAYROLLS_ROUTE } from "../../configs/IntegrationServer";
+import { PAYROLLS_ROUTE } from "../../server/configs";
 
 type PayrollModalProps = {
     payrollModalText: string,

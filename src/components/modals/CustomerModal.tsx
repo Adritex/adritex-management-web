@@ -5,7 +5,7 @@ import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { classNames } from 'primereact/utils';
 import { CustomerModel } from "../../models/customerModel";
-import { CUSTOMER_ROUTE } from "../../configs/IntegrationServer";
+import { CUSTOMER_ROUTE } from "../../server/configs";
 import {
     Controller,
     Control,

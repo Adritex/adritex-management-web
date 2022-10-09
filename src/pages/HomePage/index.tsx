@@ -1,29 +1,32 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { ProductModel } from "../../models/productModel";
 import { ProductOrderModel } from "../../models/productOrderModel";
 import { StatusType } from "../../enums/statusType";
-import { PRODUCT_ORDERS_ROUTE, ORDERS_ROUTE } from "../../configs/IntegrationServer";
+import { PRODUCT_ORDERS_ROUTE, ORDERS_ROUTE } from "../../server/configs";
 
 import { DataView } from 'primereact/dataview';
 import { Image } from "primereact/image";
 import { Divider } from "primereact/divider";
 import { PriorityType } from "../../enums/priorityType";
+import { AuthContext } from "../../contexts/authContext";
+import { fetchServer } from "../../server";
 
 function HomePage() {
+    const { user } = useContext(AuthContext);
     const [lowOrder, setLowOrder] = useState<ProductOrderModel[]>([]);
     const [mediumOrder, setMediumOrder] = useState<ProductOrderModel[]>([]);
     const [highOrder, setHighOrder] = useState<ProductOrderModel[]>([]);
 
     useEffect(() => {
-        fetch(PRODUCT_ORDERS_ROUTE, {
+        fetchServer({
+            route: PRODUCT_ORDERS_ROUTE,
             method: "GET",
-        }).then(response => {
-            return response.json();
+            user: user
         }).then((products: ProductModel[]) => {
-            fetch(ORDERS_ROUTE, {
+            fetchServer({
+                route: ORDERS_ROUTE,
                 method: "GET",
-            }).then(response => {
-                return response.json();
+                user: user
             }).then((productOrders: ProductOrderModel[]) => {
                 const low: ProductOrderModel[] = [];
                 const medium: ProductOrderModel[] = [];

@@ -16,7 +16,7 @@ import {
     UseFormReset,
     UseFormSetValue
 } from 'react-hook-form';
-import { EXPENSE_ROUTE } from "../../configs/IntegrationServer";
+import { EXPENSE_ROUTE } from "../../server/configs";
 
 type ExpenseModalProps = {
     expenseModalText: string,
