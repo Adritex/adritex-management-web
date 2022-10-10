@@ -3,7 +3,7 @@ import { Dialog } from "primereact/dialog";
 import { Calendar } from 'primereact/calendar';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { addLocale, locale } from 'primereact/api';
 import { classNames } from 'primereact/utils';
 import { ExpenseModel } from "../../models/expenseModel";
@@ -17,6 +17,8 @@ import {
     UseFormSetValue
 } from 'react-hook-form';
 import { EXPENSE_ROUTE } from "../../server/configs";
+import { AuthContext } from "../../contexts/authContext";
+import { fetchServer } from "../../server";
 
 type ExpenseModalProps = {
     expenseModalText: string,
@@ -33,6 +35,7 @@ type ExpenseModalProps = {
 };
 
 export function ExpenseModal(props: ExpenseModalProps) {
+    const { user } = useContext(AuthContext);
     const [formData, setFormData] = useState({});
     const [value, setValue] = useState<number>(0);
     const [date, setDate] = useState<any>(props.expense.date);
@@ -58,12 +61,11 @@ export function ExpenseModal(props: ExpenseModalProps) {
         let route: string = EXPENSE_ROUTE;
         route += data.id ? `/${data.id}` : "";
 
-        fetch(route, {
+        fetchServer({
+            route: route,
             method: "POST",
-            body: JSON.stringify(data),
-            headers: { 'Content-Type': 'application/json' },
-        }).then(response => {
-            return response.json();
+            user: user,
+            body: JSON.stringify(data)
         }).then((response: ExpenseModel) => {
             props.reset();
             props.onClickSave(response);

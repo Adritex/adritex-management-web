@@ -133,7 +133,7 @@ function ProductPage() {
 
     function onSave(product: ProductModel) {
         const filteredProducts = products.filter(item => item.id != product.id);
-        console.log(product)
+        
         setSelectedProducts([]);
         setProducts([...filteredProducts, product]);
 
@@ -148,25 +148,27 @@ function ProductPage() {
     function onDelete(selectedProducts: ProductModel[]) {
         const ids: string[] = selectedProducts.map(item => item.id);
 
-        fetchServer({
-            route: PRODUCT_ROUTE,
-            method: "DELETE",
-            user: user,
-            body: JSON.stringify({ ids })
-        }).then(() => {
-            const filteredProducts = products.filter(
-                item => !ids.includes(item.id)
-            );
+        if (ids.length > 0) {
+            fetchServer({
+                route: PRODUCT_ROUTE,
+                method: "DELETE",
+                user: user,
+                body: JSON.stringify({ ids })
+            }).then(() => {
+                const filteredProducts = products.filter(
+                    item => !ids.includes(item.id)
+                );
 
-            setProducts(filteredProducts);
+                setProducts(filteredProducts);
 
-            toast.current.show({
-                severity: 'success',
-                summary: 'Sucesso!',
-                detail: 'Os produtos selecionados foram removidos com sucesso!',
-                life: 3000
+                toast.current.show({
+                    severity: 'success',
+                    summary: 'Sucesso!',
+                    detail: 'Os produtos selecionados foram removidos com sucesso!',
+                    life: 3000
+                });
             });
-        });
+        }
     }
 
     function balanceBodyTemplate(rowData: ProductModel) {

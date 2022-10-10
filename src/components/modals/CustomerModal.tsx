@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { InputText } from 'primereact/inputtext';
 import { InputMask } from 'primereact/inputmask';
 import { Dialog } from "primereact/dialog";
@@ -15,6 +15,8 @@ import {
     UseFormReset,
     UseFormSetValue
 } from 'react-hook-form';
+import { fetchServer } from "../../server";
+import { AuthContext } from "../../contexts/authContext";
 
 
 type CustomerModalProps = {
@@ -32,6 +34,7 @@ type CustomerModalProps = {
 };
 
 export function CustomerModal(props: CustomerModalProps) {
+    const { user } = useContext(AuthContext);
     const [formData, setFormData] = useState({});
 
     function onSubmit(data: CustomerModel) {
@@ -39,13 +42,12 @@ export function CustomerModal(props: CustomerModalProps) {
 
         let route: string = CUSTOMER_ROUTE;
         route += data.id ? `/${data.id}` : '';
-        
-        fetch(route, {
+
+        fetchServer({
+            route: route,
             method: "POST",
-            body: JSON.stringify(data),
-            headers: { 'Content-Type': 'application/json' },
-        }).then(response => {
-            return response.json();
+            user: user,
+            body: JSON.stringify(data)
         }).then((response: CustomerModel) => {
             props.reset();
             props.onClickSave(response);

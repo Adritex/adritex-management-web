@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { InputText } from 'primereact/inputtext';
 import { InputMask } from 'primereact/inputmask';
 import { Calendar } from 'primereact/calendar';
@@ -18,6 +18,8 @@ import {
     UseFormReset,
     UseFormSetValue
 } from 'react-hook-form';
+import { fetchServer } from "../../server";
+import { AuthContext } from "../../contexts/authContext";
 
 type EmployeeModalProps = {
     employeeModalText: string,
@@ -34,6 +36,7 @@ type EmployeeModalProps = {
 };
 
 export function EmployeeModal(props: EmployeeModalProps) {
+    const { user } = useContext(AuthContext);
     const [formData, setFormData] = useState({});
     const [checked, setChecked] = useState<boolean>(true);
     const [date, setDate] = useState<any>(props.employee.birthDate);
@@ -60,19 +63,18 @@ export function EmployeeModal(props: EmployeeModalProps) {
         let route: string = EMPLOYEE_ROUTE;
         route += data.id ? `/${data.id}` : '';
 
-        fetch(route, {
+        fetchServer({
+            route: route,
             method: "POST",
-            body: JSON.stringify(data),
-            headers: { 'Content-Type': 'application/json' },
-        }).then(response => {
-            return response.json();
+            user: user,
+            body: JSON.stringify(data)
         }).then((response: EmployeeModel) => {
             props.reset();
             props.onClickSave(response);
             props.setDisplayEmployeeModal(false);
             setDate(null);
             setChecked(false);
-        })
+        });
     }
 
     function getFormErrorMessage(propertyName: string) {

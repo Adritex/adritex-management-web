@@ -13,7 +13,7 @@ interface ProductProps {
     amount: number;
     status: StatusType;
     image: string | ArrayBuffer;
-    date: Date;
+    date: Date | undefined;
 }
 
 export class ProductModel {
@@ -46,7 +46,7 @@ export class ProductModel {
     set amount(amount: number) { this.props.amount = amount; }
     set status(status: StatusType) { this.props.status = status; }
     set image(image: string | ArrayBuffer) { this.props.image = image; }
-    set date(date: Date) { this.props.date = date; }
+    set date(date: Date | undefined) { this.props.date = date; }
  
     static empty() {
         return new ProductModel({
@@ -61,7 +61,7 @@ export class ProductModel {
             amount: 0,
             status: StatusType.Pending,
             image: "",
-            date: new Date(),
+            date: undefined,
         });
     }
 

@@ -19,7 +19,7 @@ export async function fetchServer(props: IFetchProps) {
     } else {
         const action = await fetch(props.route, {
             method: props.method,
-            body: props.method,
+            body: props.body,
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + props.user.token

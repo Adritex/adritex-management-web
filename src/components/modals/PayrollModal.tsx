@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { classNames } from 'primereact/utils';
 import { addLocale, locale } from 'primereact/api';
 import { PayrollModel } from "../../models/payrollModel";
@@ -20,6 +20,8 @@ import {
     UseFormSetValue
 } from 'react-hook-form';
 import { PAYROLLS_ROUTE } from "../../server/configs";
+import { fetchServer } from "../../server";
+import { AuthContext } from "../../contexts/authContext";
 
 type PayrollModalProps = {
     payrollModalText: string,
@@ -37,6 +39,7 @@ type PayrollModalProps = {
 }
 
 export function PayrollModal(props: PayrollModalProps) {
+    const { user } = useContext(AuthContext);
     const [formData, setFormData] = useState({});
     const [selectedEmployee, setSelectedEmployee] = useState<any>("");
     const [employeeOptions, setEmployeeOptions] = useState<any[]>([]);
@@ -72,12 +75,11 @@ export function PayrollModal(props: PayrollModalProps) {
         let route: string = PAYROLLS_ROUTE;
         route += data.id ? `/${data.id}` : "";
 
-        fetch(route, {
+        fetchServer({
+            route: route,
             method: "POST",
-            body: JSON.stringify(data),
-            headers: { 'Content-Type': 'application/json' },
-        }).then(response => {
-            return response.json();
+            user: user,
+            body: JSON.stringify(data)
         }).then((response: PayrollModel) => {
             const employee = props.employees.find(item => item.id == selectedEmployee);
             const payroll = PayrollModel.clone(response);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ProductModel } from "../../models/productModel";
 import { CustomerModel } from "../../models/customerModel";
 import { PRODUCT_ROUTE } from "../../server/configs";
@@ -20,6 +20,8 @@ import {
     UseFormReset,
     UseFormSetValue
 } from 'react-hook-form';
+import { fetchServer } from "../../server";
+import { AuthContext } from "../../contexts/authContext";
 
 type ProductModalProps = {
     productModalText: string,
@@ -37,6 +39,7 @@ type ProductModalProps = {
 }
 
 export function ProductModal(props: ProductModalProps) {
+    const { user } = useContext(AuthContext);
     const [formData, setFormData] = useState({});
     const [image, setImage] = useState<any>("");
     const [amount, setAmount] = useState<any>(props.product.amount);
@@ -65,12 +68,24 @@ export function ProductModal(props: ProductModalProps) {
         let route: string = PRODUCT_ROUTE;
         route += data.id ? `/${data.id}` : "";
 
-        fetch(route, {
+        fetchServer({
+            route: route,
             method: "POST",
-            body: JSON.stringify(product),
-            headers: { 'Content-Type': 'application/json' },
-        }).then(response => {
-            return response.json();
+            user: user,
+            body: JSON.stringify({
+                id: product.id,
+                customer: product.customer,
+                idCustomer: product.idCustomer,
+                reference: product.reference,
+                of: product.of,
+                description: product.description,
+                quantity: product.quantity,
+                unitaryValue: product.unitaryValue,
+                amount: product.amount,
+                status: product.status,
+                date: product.date,
+                image: "",
+            })
         }).then((response: ProductModel) => {
             const customer = props.customers.find(item => item.id == selectedCustomer);
             const responseProduct = ProductModel.clone(response);
@@ -78,6 +93,30 @@ export function ProductModal(props: ProductModalProps) {
             if (customer) {
                 responseProduct.customer = customer;
                 responseProduct.idCustomer = customer.id;
+            }
+
+            if(responseProduct.id && product.image) {
+                responseProduct.image = product.image;
+                
+                fetchServer({
+                    route: `${PRODUCT_ROUTE}/${responseProduct.id}`,
+                    method: "POST",
+                    user: user,
+                    body: JSON.stringify({
+                        id: responseProduct.id,
+                        customer: product.customer,
+                        idCustomer: product.idCustomer,
+                        reference: product.reference,
+                        of: product.of,
+                        description: product.description,
+                        quantity: product.quantity,
+                        unitaryValue: product.unitaryValue,
+                        amount: product.amount,
+                        status: product.status,
+                        image: product.image,
+                        date: product.date,
+                    })
+                });
             }
 
             props.setDisplayProductModal(false);
