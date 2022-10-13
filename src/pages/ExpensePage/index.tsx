@@ -122,7 +122,11 @@ function ExpensePage() {
     }
 
     function balanceBodyTemplate(rowData: ExpenseModel) {
-        return rowData.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        if(rowData?.value) {
+            return Number(rowData.value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        return Number(0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
     function dateBodyTemplate(rowData: ExpenseModel) {

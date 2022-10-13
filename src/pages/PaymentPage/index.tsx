@@ -155,7 +155,12 @@ function PaymentPage() {
     }
 
     function balanceBodyTemplate(rowData: PayrollModel) {
-        return rowData.salaryToBePaid?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        console.log(rowData)
+        if(rowData?.salaryToBePaid) {
+            return Number(rowData.salaryToBePaid).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        return Number(0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
     function dateBodyTemplate(rowData: PayrollModel) {

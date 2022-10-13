@@ -4,6 +4,8 @@ import { PriorityType } from "../../enums/priorityType";
 import { ProductModel } from "../../models/productModel";
 import { ProductOrderModel } from "../../models/productOrderModel";
 import { ORDERS_ROUTE, PRODUCT_ORDERS_ROUTE } from "../../server/configs";
+import { fetchServer } from "../../server";
+import { AuthContext } from "../../contexts/authContext";
 
 import { PickList, PickListChangeParams } from 'primereact/picklist';
 import { SelectButton } from 'primereact/selectbutton';
@@ -11,8 +13,6 @@ import { Image } from 'primereact/image';
 import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
 import { ConfirmFinishedOrderModal } from "../../components/modals/ConfirmFinishedOrderModal";
-import { AuthContext } from "../../contexts/authContext";
-import { fetchServer } from "../../server";
 
 function OrderPage() {
     const toast = useRef<any>(null);

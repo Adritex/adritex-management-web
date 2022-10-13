@@ -16,6 +16,7 @@ import OrderPage from './pages/OrderPage';
 
 import { Private } from './components/Private';
 import { Navbar } from './components/Navbar';
+import DashboardPage from './pages/DashboardPage';
 
 export function AppRoutes() {
     return (
@@ -26,6 +27,9 @@ export function AppRoutes() {
                     <Route path='/login' element={<LoginPage />} />
                     <Route path='/' element={
                         <Private><HomePage /></Private>
+                    } />
+                    <Route path='/dashboard' element={
+                        <Private><DashboardPage /></Private>
                     } />
                     <Route path='/clientes' element={
                         <Private><CustomerPage /></Private>

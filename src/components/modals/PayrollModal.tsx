@@ -47,7 +47,7 @@ export function PayrollModal(props: PayrollModalProps) {
     const [overtime, setOvertime] = useState<number>(0);
     const [attendanceAward, setAttendanceAward] = useState<number>(0);
     const [productionAward, setProductionAward] = useState<number>(0);
-    const [salaryToBePaid, setSalaryToBePaid] = useState<number>(0);
+    const [salaryToBePaid, setSalaryToBePaid] = useState<any>(0);
     const [date, setDate] = useState<any>(props.payroll.date);
 
     addLocale('pt', {
@@ -79,7 +79,17 @@ export function PayrollModal(props: PayrollModalProps) {
             route: route,
             method: "POST",
             user: user,
-            body: JSON.stringify(data)
+            body: JSON.stringify({
+                id: data.id,
+                idEmployee: data.idEmployee,
+                employee: data.employee,
+                attendanceAward: data.attendanceAward,
+                productionAward: data.productionAward,
+                overtime: data.overtime,
+                salary: data.salary,
+                salaryToBePaid: data.salaryToBePaid,
+                date: data.date
+            })
         }).then((response: PayrollModel) => {
             const employee = props.employees.find(item => item.id == selectedEmployee);
             const payroll = PayrollModel.clone(response);
@@ -121,9 +131,13 @@ export function PayrollModal(props: PayrollModalProps) {
                 setDate(new Date(props.payroll.date));
                 setSelectedEmployee(props.payroll.idEmployee);
                 setAttendanceAward(props.payroll.attendanceAward);
+                props.setValue("attendanceAward", props.payroll.attendanceAward);
                 setProductionAward(props.payroll.productionAward);
+                props.setValue("productionAward", props.payroll.productionAward);
                 setOvertime(props.payroll.overtime);
+                props.setValue("overtime", props.payroll.overtime);
                 setSalary(props.payroll.salary);
+                props.setValue("salary", props.payroll.salary);
                 setSalaryToBePaid(
                     Number(props.payroll.salary) + 
                     Number(props.payroll.attendanceAward) + 
@@ -189,7 +203,7 @@ export function PayrollModal(props: PayrollModalProps) {
                                     const value = Number(event.value);
                                     setSalary(value);
                                     props.setValue("salary", value);
-                                    setSalaryToBePaid(value + attendanceAward + productionAward);
+                                    setSalaryToBePaid(Number(value) + Number(attendanceAward) + Number(productionAward));
                                 }}
                             />
                         )} />
@@ -241,11 +255,8 @@ export function PayrollModal(props: PayrollModalProps) {
                                     const value = Number(event.value);
                                     
                                     setAttendanceAward(value);
+                                    setSalaryToBePaid(Number(salary) + Number(value) + Number(productionAward));
                                     props.setValue("attendanceAward", value);
-                                    setSalaryToBePaid(
-                                        Number(salary) + 
-                                        Number(value) + 
-                                        Number(productionAward));
                                 }}
                             />
                         )} />
@@ -265,8 +276,8 @@ export function PayrollModal(props: PayrollModalProps) {
                                 onValueChange={(event) => {
                                     const value = Number(event.value);
                                     setProductionAward(value);
+                                    setSalaryToBePaid(Number(salary) + Number(attendanceAward) + Number(value));
                                     props.setValue("productionAward", value);
-                                    setSalaryToBePaid(salary + attendanceAward + value);
                                 }}
                             />
                         )} />

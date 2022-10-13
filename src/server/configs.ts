@@ -8,6 +8,7 @@ const PRODUCT_ORDERS_ROUTE = `${API_HOST}/demand/products/in-orders`;
 const ORDERS_ROUTE = `${API_HOST}/demand/orders`;
 const LOGIN_ROUTE = `${API_HOST}/login`;
 const PING_ROUTE = `${API_HOST}/ping`;
+const DASHBOARD_ROUTE = `${API_HOST}/dashboard`;
 
 export {
     API_HOST,
@@ -19,5 +20,6 @@ export {
     PRODUCT_ORDERS_ROUTE,
     ORDERS_ROUTE,
     LOGIN_ROUTE,
-    PING_ROUTE
+    PING_ROUTE,
+    DASHBOARD_ROUTE
 }

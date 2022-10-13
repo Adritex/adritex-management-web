@@ -65,7 +65,13 @@ export function ExpenseModal(props: ExpenseModalProps) {
             route: route,
             method: "POST",
             user: user,
-            body: JSON.stringify(data)
+            body: JSON.stringify({
+                id: data.id,
+                name: data.name,
+                description: data.description ?? "",
+                value: data.value,
+                date: data.date
+            })
         }).then((response: ExpenseModel) => {
             props.reset();
             props.onClickSave(response);
