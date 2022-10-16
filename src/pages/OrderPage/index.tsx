@@ -3,7 +3,7 @@ import { StatusType } from "../../enums/statusType";
 import { PriorityType } from "../../enums/priorityType";
 import { ProductModel } from "../../models/productModel";
 import { ProductOrderModel } from "../../models/productOrderModel";
-import { ORDERS_ROUTE, PRODUCT_ORDERS_ROUTE } from "../../server/configs";
+import { CUSTOMER_ROUTE, ORDERS_ROUTE, PRODUCT_ORDERS_ROUTE } from "../../server/configs";
 import { fetchServer } from "../../server";
 import { AuthContext } from "../../contexts/authContext";
 
@@ -13,6 +13,7 @@ import { Image } from 'primereact/image';
 import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
 import { ConfirmFinishedOrderModal } from "../../components/modals/ConfirmFinishedOrderModal";
+import { CustomerModel } from "../../models/customerModel";
 
 function OrderPage() {
     const toast = useRef<any>(null);
@@ -20,11 +21,20 @@ function OrderPage() {
     const [source, setSource] = useState<ProductModel[]>([]);
     const [target, setTarget] = useState<ProductModel[]>([]);
     const [productOrders, setProductOrders] = useState<ProductOrderModel[]>([]);
+    const [customers, setCustomers] = useState<CustomerModel[]>([]);
     const [displayConfirmFinishedOrderModal, setDisplayConfirmFinishedOrderModal] = useState<boolean>(false);
     const [selectedProductOrder, setSelectedProductOrder] = useState<ProductOrderModel>(ProductOrderModel.empty());
     const priorityOptions = ["B", "M", "A"];
 
     useEffect(() => {
+        fetchServer({
+            route: CUSTOMER_ROUTE,
+            method: "GET",
+            user: user
+        }).then((customers: CustomerModel[]) => {
+            setCustomers(customers);
+        });
+
         fetchServer({
             route: PRODUCT_ORDERS_ROUTE,
             method: "GET",
@@ -95,7 +105,7 @@ function OrderPage() {
                 <div className="product-list-detail">
                     <h6 className="mb-2">{item.description}</h6>
                     <span className="product-category">
-                        <b>Cliente: </b>{item.customer?.name}
+                        <b>Cliente: </b>{customers.find(customer => customer.id == item.idCustomer)?.name}
                         <br />
                         <b>Referência: </b>{item.reference}
                         <br />
@@ -119,7 +129,7 @@ function OrderPage() {
                 <div className="product-list-detail">
                     <h6 className="mb-2">{item.description}</h6>
                     <span className="product-category">
-                        <b>Cliente: </b>{item.customer?.name}
+                        <b>Cliente: </b>{customers.find(customer => customer.id == item.idCustomer)?.name}
                         <br />
                         <b>Referência: </b>{item.reference}
                         <br />

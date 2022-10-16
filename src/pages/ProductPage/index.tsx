@@ -15,6 +15,8 @@ import { ProductModal } from "../../components/modals/ProductModal";
 import { DeleteModal } from "../../components/modals/DeleteModal";
 import { AuthContext } from "../../contexts/authContext";
 import { fetchServer } from "../../server";
+import jsPDF from "jspdf";
+import autoTable from 'jspdf-autotable';
 
 function ProductPage() {
     const toast = useRef<any>(null);
@@ -72,22 +74,22 @@ function ProductPage() {
                 setGlobalFilterValue={setGlobalFilterValue}
                 showExportButtons={true}
                 onClickExportPDF={() => {
-                    // const doc = new jsPDF();
-                    // const items: any[][] = products.map(item => {
-                    //     return [
-                    //         item.customer?.name,
-                    //         item.reference,
-                    //         item.of,
-                    //         item.description,
-                    //         item.amount
-                    //     ]
-                    // });
+                    const doc = new jsPDF();
+                    const items: any[][] = products.map(item => {
+                        return [
+                            customers.find(customer => customer.id == item.idCustomer)?.name,
+                            item.reference,
+                            item.of,
+                            item.description,
+                            item.amount
+                        ]
+                    });
 
-                    // autoTable(doc, {
-                    //     head: [["Cliente", "Referência", "OF", "Descrição", "Valor total"]],
-                    //     body: items
-                    // });
-                    // doc.save("produtos.pdf");
+                    autoTable(doc, {
+                        head: [["Cliente", "Referência", "OF", "Descrição", "Valor total"]],
+                        body: items
+                    });
+                    doc.save("produtos.pdf");
                 }}
                 onClickExportXLS={() => { }}
                 onClickNewItem={() => {

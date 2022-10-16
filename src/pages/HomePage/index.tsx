@@ -2,7 +2,7 @@ import { useEffect, useState, useContext } from "react";
 import { ProductModel } from "../../models/productModel";
 import { ProductOrderModel } from "../../models/productOrderModel";
 import { StatusType } from "../../enums/statusType";
-import { PRODUCT_ORDERS_ROUTE, ORDERS_ROUTE, GOAL_ROUTE } from "../../server/configs";
+import { PRODUCT_ORDERS_ROUTE, ORDERS_ROUTE, GOAL_ROUTE, CUSTOMER_ROUTE } from "../../server/configs";
 
 import { DataView } from 'primereact/dataview';
 import { Image } from "primereact/image";
@@ -14,6 +14,7 @@ import { fetchServer } from "../../server";
 import { Button } from "primereact/button";
 import { GoalModal } from "../../components/modals/GoalModal";
 import { GoalModel } from "../../models/goalModel";
+import { CustomerModel } from "../../models/customerModel";
 
 function HomePage() {
     const { user } = useContext(AuthContext);
@@ -23,6 +24,7 @@ function HomePage() {
     const [displayGoalModal, setDisplayGoalModal] = useState<boolean>(false);
     const [mediumOrder, setMediumOrder] = useState<ProductOrderModel[]>([]);
     const [highOrder, setHighOrder] = useState<ProductOrderModel[]>([]);
+    const [customers, setCustomers] = useState<CustomerModel[]>([]);
 
     useEffect(() => {
         fetchServer({
@@ -31,46 +33,59 @@ function HomePage() {
             user: user
         }).then((response: GoalModel) => {
             setGoal(response);
-            console.log(response)
             setProgressbar(getProgress(response));
         });
 
         fetchServer({
-            route: PRODUCT_ORDERS_ROUTE,
+            route: CUSTOMER_ROUTE,
             method: "GET",
             user: user
-        }).then((products: ProductModel[]) => {
+        }).then((customers: CustomerModel[]) => {
+            setCustomers(customers);
+
             fetchServer({
-                route: ORDERS_ROUTE,
+                route: PRODUCT_ORDERS_ROUTE,
                 method: "GET",
                 user: user
-            }).then((productOrders: ProductOrderModel[]) => {
-                const low: ProductOrderModel[] = [];
-                const medium: ProductOrderModel[] = [];
-                const high: ProductOrderModel[] = [];
-
-                productOrders
-                    .sort((a, b) => a.order > b.order ? 1 : -1)
-                    .forEach(productOrderItem => {
-                        const productOrder = ProductOrderModel.clone(productOrderItem);
-                        const product = products.find(item => item.id == productOrderItem.idProduct);
-
-                        if (product) {
-                            productOrder.product = product;
-                        }
-
-                        if (productOrder.priority == PriorityType.Low) {
-                            low.push(productOrder);
-                        } else if (productOrder.priority == PriorityType.Medium) {
-                            medium.push(productOrder);
-                        } else {
-                            high.push(productOrder);
-                        }
-                    });
-
-                setLowOrder(low);
-                setMediumOrder(medium);
-                setHighOrder(high);
+            }).then((products: ProductModel[]) => {
+                fetchServer({
+                    route: ORDERS_ROUTE,
+                    method: "GET",
+                    user: user
+                }).then((productOrders: ProductOrderModel[]) => {
+                    const low: ProductOrderModel[] = [];
+                    const medium: ProductOrderModel[] = [];
+                    const high: ProductOrderModel[] = [];
+    
+                    productOrders
+                        .sort((a, b) => a.order > b.order ? 1 : -1)
+                        .forEach(productOrderItem => {
+                            const productOrder = ProductOrderModel.clone(productOrderItem);
+                            const product = products.find(item => item.id == productOrderItem.idProduct);
+    
+                            if (product) {
+                                productOrder.product = product;
+    
+                                const customer = customers.find(item => item.id == product.idCustomer);
+    
+                                if(customer) {
+                                    productOrder.product.customer = customer;
+                                }
+                            }
+    
+                            if (productOrder.priority == PriorityType.Low) {
+                                low.push(productOrder);
+                            } else if (productOrder.priority == PriorityType.Medium) {
+                                medium.push(productOrder);
+                            } else {
+                                high.push(productOrder);
+                            }
+                        });
+    
+                    setLowOrder(low);
+                    setMediumOrder(medium);
+                    setHighOrder(high);
+                });
             });
         });
     }, []);
