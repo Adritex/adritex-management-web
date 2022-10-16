@@ -2,22 +2,39 @@ import { useEffect, useState, useContext } from "react";
 import { ProductModel } from "../../models/productModel";
 import { ProductOrderModel } from "../../models/productOrderModel";
 import { StatusType } from "../../enums/statusType";
-import { PRODUCT_ORDERS_ROUTE, ORDERS_ROUTE } from "../../server/configs";
+import { PRODUCT_ORDERS_ROUTE, ORDERS_ROUTE, GOAL_ROUTE } from "../../server/configs";
 
 import { DataView } from 'primereact/dataview';
 import { Image } from "primereact/image";
+import { ProgressBar } from 'primereact/progressbar';
 import { Divider } from "primereact/divider";
 import { PriorityType } from "../../enums/priorityType";
 import { AuthContext } from "../../contexts/authContext";
 import { fetchServer } from "../../server";
+import { Button } from "primereact/button";
+import { GoalModal } from "../../components/modals/GoalModal";
+import { GoalModel } from "../../models/goalModel";
 
 function HomePage() {
     const { user } = useContext(AuthContext);
+    const [goal, setGoal] = useState<GoalModel>(GoalModel.empty());
+    const [progressbar, setProgressbar] = useState<number>(0);
     const [lowOrder, setLowOrder] = useState<ProductOrderModel[]>([]);
+    const [displayGoalModal, setDisplayGoalModal] = useState<boolean>(false);
     const [mediumOrder, setMediumOrder] = useState<ProductOrderModel[]>([]);
     const [highOrder, setHighOrder] = useState<ProductOrderModel[]>([]);
 
     useEffect(() => {
+        fetchServer({
+            route: GOAL_ROUTE,
+            method: "GET",
+            user: user
+        }).then((response: GoalModel) => {
+            setGoal(response);
+            console.log(response)
+            setProgressbar(getProgress(response));
+        });
+
         fetchServer({
             route: PRODUCT_ORDERS_ROUTE,
             method: "GET",
@@ -99,8 +116,31 @@ function HomePage() {
         }
     }
 
+    function getProgress(goal: GoalModel) {
+        const value = ((goal.currentQuantity * 100) / goal.expectedQuantity);
+        return Math.round(value);
+    }
+
     return (
         <div className="h-screen w-full mt-3">
+            <div className="card">
+                <div className="flex align-items-center justify-content-between">
+                    <h5>Meta de produção</h5>
+                    {user?.accessType == 0 ? (
+                        <Button 
+                            label="Definir metas" 
+                            onClick={() => {
+                                setDisplayGoalModal(true);
+                            }}    
+                        />
+                    ) : (<></>)}
+                </div>
+                <ProgressBar value={progressbar}></ProgressBar>
+                <div className="flex align-items-center justify-content-between">
+                    <h6 className="m-0 p-0">Peças produzidas: {goal.currentQuantity ?? 0}</h6>
+                    <h6 className="m-0 p-0">Meta de peças: {goal.expectedQuantity ?? 0}</h6>
+                </div>
+            </div>
             <div className="grid h-full px-2">
                 <div className="col flex flex-column">
                     <div className="flex align-items-center justify-content-center">
@@ -152,6 +192,26 @@ function HomePage() {
                     </div>
                 </div>
             </div>
+
+            <GoalModal
+                displayGoalModal={displayGoalModal}
+                setDisplayGoalModal={setDisplayGoalModal}
+                goal={goal}
+                onClickSaveGoal={(goal) => {
+                    fetchServer({
+                        route: GOAL_ROUTE,
+                        method: "POST",
+                        user: user,
+                        body: JSON.stringify({
+                            currentQuantity: goal.currentQuantity,
+                            expectedQuantity: goal.expectedQuantity
+                        })
+                    }).then((response: GoalModel) => {
+                        setGoal(response);
+                        setProgressbar(getProgress(response));
+                    })
+                }}
+            />
         </div>
     )
 }
