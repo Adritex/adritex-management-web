@@ -6,7 +6,7 @@ import { ColumnGroup } from 'primereact/columngroup';
 import { Row } from 'primereact/row';
 import { Chart } from 'primereact/chart';
 import { fetchServer } from "../../server";
-import { DASHBOARD_ROUTE } from "../../server/configs";
+import { CUSTOMER_ROUTE, DASHBOARD_ROUTE } from "../../server/configs";
 import { AuthContext } from "../../contexts/authContext";
 
 interface ProductTable {
@@ -20,14 +20,14 @@ interface ExpenseTable {
     value: number;
 }
 
-interface AnnualBilling  {
+interface AnnualBilling {
     name: string;
     value: number;
 }
 
 function DashboardPage() {
     const { user } = useContext(AuthContext);
-    const [expenses, setExpenses] = useState<ExpenseTable[]>([]); 
+    const [expenses, setExpenses] = useState<ExpenseTable[]>([]);
     const [products, setProducts] = useState<ProductTable[]>([]);
     const [basicData, setBasicData] = useState<any>();
     const [annualBillingChart, setAnnualBillingChart] = useState<any>();
@@ -35,58 +35,66 @@ function DashboardPage() {
 
     useEffect(() => {
         fetchServer({
-            method: "POST",
             route: DASHBOARD_ROUTE,
+            method: "GET",
             user: user,
-            body: JSON.stringify({
-                startDate: new Date(2022, 10, 1),
-                endDate: new Date(2022, 10, 30),
-            })
         }).then(response => {
-            console.log(response);
-        })
+            setExpenses(response.expenses);
+            setProducts(response.products);
 
-        setBasicData({
-            labels: ["Mês atual"],
-            datasets: [
-                {
-                    label: 'Despesas',
-                    backgroundColor: '#bd0404',
-                    data: [20]
-                },
-                {
-                    label: 'Receitas',
-                    backgroundColor: '#03a603',
-                    data:  [30]
-                }
-            ]
-        });
+            let expensesValue = 0;
+            let productsValue = 0;
 
-        const annual: AnnualBilling[] = [
-            { name: "Janeiro", value: 10 },
-            { name: "Fevereiro", value: 20 },
-            { name: "Março", value: 30 },
-            { name: "Abril", value: 40 },
-            { name: "Maio", value: 50 },
-            { name: "Junho", value: 60 },
-            { name: "Julho", value: 70 },
-            { name: "Agosto", value: 80 },
-            { name: "Setembro", value: 90 },
-            { name: "Outubro", value: 100 },
-            { name: "Novembro", value: 110 },
-            { name: "Dezembro", value: 120 },
-        ];
+            response.expenses.forEach((expense: any) => expensesValue += Number(expense.value));
+            response.products.forEach((product: any) => productsValue += Number(product.amount));
 
-        setAnnualBilling(annual);
-        setAnnualBillingChart({
-            labels: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
-            datasets: [
-                {
-                    label: 'Receitas',
-                    backgroundColor: '#03a603',
-                    data: annual.map(item => item.value)
-                },
-            ]
+            setBasicData({
+                labels: ["Mês atual"],
+                datasets: [
+                    {
+                        label: 'Despesas',
+                        backgroundColor: '#bd0404',
+                        data: [expensesValue]
+                    },
+                    {
+                        label: 'Receitas',
+                        backgroundColor: '#03a603',
+                        data: [productsValue]
+                    }
+                ]
+            });
+
+            const annual: AnnualBilling[] = [
+                { name: "Janeiro", value: response.annualBilling[0] },
+                { name: "Fevereiro", value: response.annualBilling[1] },
+                { name: "Março", value: response.annualBilling[2] },
+                { name: "Abril", value: response.annualBilling[3] },
+                { name: "Maio", value: response.annualBilling[4] },
+                { name: "Junho", value: response.annualBilling[5] },
+                { name: "Julho", value: response.annualBilling[6] },
+                { name: "Agosto", value: response.annualBilling[7] },
+                { name: "Setembro", value: response.annualBilling[8] },
+                { name: "Outubro", value: response.annualBilling[9] },
+                { name: "Novembro", value: response.annualBilling[10] },
+                { name: "Dezembro", value: response.annualBilling[11] },
+            ];
+            setAnnualBilling(annual);
+
+            setAnnualBillingChart({
+                labels: [
+                    'Janeiro', 'Fevereiro', 'Março',
+                    'Abril', 'Maio', 'Junho',
+                    'Julho', 'Agosto', 'Setembro',
+                    'Outubro', 'Novembro', 'Dezembro'
+                ],
+                datasets: [
+                    {
+                        label: 'Receitas',
+                        backgroundColor: '#03a603',
+                        data: annual.map(item => item.value)
+                    },
+                ]
+            });
         });
     }, []);
 
@@ -124,7 +132,7 @@ function DashboardPage() {
         let total = 0;
 
         products.forEach(item => {
-            total += item.amount;
+            total += Number(item.amount);
         });
 
         return formatValue(total);
@@ -134,7 +142,7 @@ function DashboardPage() {
         let total = 0;
 
         expenses.forEach(item => {
-            total += item.value;
+            total += Number(item.value);
         });
 
         return formatValue(total);
@@ -163,7 +171,11 @@ function DashboardPage() {
     }
 
     function formatValue(value: number) {
-        return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+        if(value) {
+            return Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+        }
+
+        return 0;
     }
 
     const headerGroupExpense = (
@@ -231,7 +243,7 @@ function DashboardPage() {
                         stripedRows scrollable header={headerGroupProduct}
                         scrollHeight="330px" className="p-datatable border-round"
                         emptyMessage="Nenhum registro encontrado." footerColumnGroup={footerGroupProduct}>
-                        <Column field="customer.name" header="Cliente" />
+                        <Column field="customer" header="Cliente" />
                         <Column field="amount" header="Valor" body={formatProductValue} />
                     </DataTable>
                 </div>
