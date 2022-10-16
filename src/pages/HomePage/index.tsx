@@ -27,6 +27,11 @@ function HomePage() {
     const [customers, setCustomers] = useState<CustomerModel[]>([]);
 
     useEffect(() => {
+        getValuesFromServer();
+        setInterval(getValuesFromServer, 60000);
+    }, []);
+
+    function getValuesFromServer() {
         fetchServer({
             route: GOAL_ROUTE,
             method: "GET",
@@ -56,23 +61,23 @@ function HomePage() {
                     const low: ProductOrderModel[] = [];
                     const medium: ProductOrderModel[] = [];
                     const high: ProductOrderModel[] = [];
-    
+
                     productOrders
                         .sort((a, b) => a.order > b.order ? 1 : -1)
                         .forEach(productOrderItem => {
                             const productOrder = ProductOrderModel.clone(productOrderItem);
                             const product = products.find(item => item.id == productOrderItem.idProduct);
-    
+
                             if (product) {
                                 productOrder.product = product;
-    
+
                                 const customer = customers.find(item => item.id == product.idCustomer);
-    
-                                if(customer) {
+
+                                if (customer) {
                                     productOrder.product.customer = customer;
                                 }
                             }
-    
+
                             if (productOrder.priority == PriorityType.Low) {
                                 low.push(productOrder);
                             } else if (productOrder.priority == PriorityType.Medium) {
@@ -81,14 +86,14 @@ function HomePage() {
                                 high.push(productOrder);
                             }
                         });
-    
+
                     setLowOrder(low);
                     setMediumOrder(medium);
                     setHighOrder(high);
                 });
             });
         });
-    }, []);
+    }
 
     const renderListItem = (data: ProductOrderModel) => {
         return (
@@ -142,11 +147,11 @@ function HomePage() {
                 <div className="flex align-items-center justify-content-between">
                     <h5>Meta de produção</h5>
                     {user?.accessType == 0 ? (
-                        <Button 
-                            label="Definir metas" 
+                        <Button
+                            label="Definir metas"
                             onClick={() => {
                                 setDisplayGoalModal(true);
-                            }}    
+                            }}
                         />
                     ) : (<></>)}
                 </div>
