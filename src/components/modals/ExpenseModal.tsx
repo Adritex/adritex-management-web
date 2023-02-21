@@ -17,7 +17,7 @@ import {
     UseFormSetValue
 } from 'react-hook-form';
 import { EXPENSE_ROUTE } from "../../server/configs";
-import { AuthContext } from "../../contexts/authContext";
+import { useAuth } from "../../contexts/authContext";
 import { fetchServer } from "../../server";
 
 type ExpenseModalProps = {
@@ -35,7 +35,7 @@ type ExpenseModalProps = {
 };
 
 export function ExpenseModal(props: ExpenseModalProps) {
-    const { user } = useContext(AuthContext);
+    const { userSession } = useAuth();
     const [formData, setFormData] = useState({});
     const [value, setValue] = useState<number>(0);
     const [date, setDate] = useState<any>(props.expense.date);
@@ -64,7 +64,7 @@ export function ExpenseModal(props: ExpenseModalProps) {
         fetchServer({
             route: route,
             method: "POST",
-            user: user,
+            user: userSession,
             body: JSON.stringify({
                 id: data.id,
                 name: data.name,

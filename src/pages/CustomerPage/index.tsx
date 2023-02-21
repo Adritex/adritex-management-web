@@ -11,12 +11,11 @@ import { CustomerModal } from "../../components/modals/CustomerModal";
 import { DeleteModal } from "../../components/modals/DeleteModal";
 import { CUSTOMER_ROUTE } from "../../server/configs";
 import { fetchServer } from "../../server";
-import { useContext } from "react";
-import { AuthContext } from "../../contexts/authContext";
+import { useAuth } from "../../contexts/authContext";
 
 function CustomerPage() {
     const toast = useRef<any>(null);
-    const { user } = useContext(AuthContext);
+    const { userSession } = useAuth();
     const [customerModalText, setCustomerModalText] = useState<string>("");
     const [displayDeleteModal, setDisplayDeleteModal] = useState<boolean>(false);
     const [displayCustomerModal, setDisplayCustomerModal] = useState<boolean>(false);
@@ -34,7 +33,7 @@ function CustomerPage() {
         fetchServer({
             route: CUSTOMER_ROUTE,
             method: "GET",
-            user: user,
+            user: userSession,
         }).then(response => {
             setCustomers(response);
             setLoading(false);
@@ -102,7 +101,7 @@ function CustomerPage() {
         fetchServer({
             route: CUSTOMER_ROUTE,
             method: "DELETE",
-            user: user,
+            user: userSession,
             body: JSON.stringify({ ids })
         }).then(() => {
             const filteredCustomers = customers.filter(customer =>

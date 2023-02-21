@@ -19,7 +19,7 @@ import {
     UseFormSetValue
 } from 'react-hook-form';
 import { fetchServer } from "../../server";
-import { AuthContext } from "../../contexts/authContext";
+import { useAuth } from "../../contexts/authContext";
 
 type EmployeeModalProps = {
     employeeModalText: string,
@@ -36,7 +36,7 @@ type EmployeeModalProps = {
 };
 
 export function EmployeeModal(props: EmployeeModalProps) {
-    const { user } = useContext(AuthContext);
+    const { userSession } = useAuth();
     const [formData, setFormData] = useState({});
     const [checked, setChecked] = useState<boolean>(true);
     const [date, setDate] = useState<any>(props.employee.birthDate);
@@ -66,7 +66,7 @@ export function EmployeeModal(props: EmployeeModalProps) {
         fetchServer({
             route: route,
             method: "POST",
-            user: user,
+            user: userSession,
             body: JSON.stringify(data)
         }).then((response: EmployeeModel) => {
             props.reset();

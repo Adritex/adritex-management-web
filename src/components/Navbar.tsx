@@ -1,12 +1,11 @@
 import { Button } from "primereact/button";
 import { Menubar } from "primereact/menubar";
-import { useContext } from "react";
 import { useEffect, useState } from "react";
 import logo from "../../public/adritex_logo.png"
-import { AuthContext } from "../contexts/authContext";
+import { useAuth } from "../contexts/authContext";
 
 export function Navbar() {
-    const { user, logout } = useContext(AuthContext);
+    const { userSession, logout } = useAuth();
     const [pages, setPages] = useState<any[]>([]);
 
     useEffect(() => {
@@ -66,6 +65,6 @@ export function Navbar() {
     const end = <Button label="Sair" icon="pi pi-fw pi-power-off" className="p-button-outlined p-button-secondary" onClick={onLogout} />;
 
     return (
-        user ? (<Menubar model={pages} start={start} end={end} />) : (<></>)
+        userSession ? (<Menubar model={pages} start={start} end={end} />) : (<></>)
     )
 }

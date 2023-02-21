@@ -11,12 +11,12 @@ import { EmployeeModal } from '../../components/modals/EmployeeModal';
 import { DeleteModal } from '../../components/modals/DeleteModal';
 import { EMPLOYEE_ROUTE } from '../../server/configs';
 import { useContext } from 'react';
-import { AuthContext } from '../../contexts/authContext';
 import { fetchServer } from '../../server';
+import { useAuth } from '../../contexts/authContext';
 
 function EmployeePage() {
     const toast = useRef<any>(null);
-    const { user } = useContext(AuthContext);
+    const { userSession } = useAuth();
     const [employeeModalText, setEmployeeModalText] = useState<string>("");
     const [displayDeleteModal, setDisplayDeleteModal] = useState<boolean>(false);
     const [displayEmployeeModal, setDisplayEmployeeModal] = useState<boolean>(false);
@@ -35,7 +35,7 @@ function EmployeePage() {
         fetchServer({
             route: EMPLOYEE_ROUTE,
             method: "GET",
-            user: user,
+            user: userSession,
         }).then(response => {
             setEmployees(response);
             setLoading(false);
@@ -130,7 +130,7 @@ function EmployeePage() {
         fetchServer({
             route: EMPLOYEE_ROUTE,
             method: "DELETE",
-            user: user,
+            user: userSession,
             body: JSON.stringify({ ids })
         }).then(() => {
             const filteredEmployees = employees.filter(employee =>

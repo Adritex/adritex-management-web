@@ -10,12 +10,12 @@ import { DataTableHeader } from "../../components/DataTableHeader";
 import { ExpenseModal } from "../../components/modals/ExpenseModal";
 import { DeleteModal } from "../../components/modals/DeleteModal";
 import { Toast } from "primereact/toast";
-import { AuthContext } from "../../contexts/authContext";
 import { fetchServer } from "../../server";
+import { useAuth } from "../../contexts/authContext";
 
 function ExpensePage() {
     const toast = useRef<any>(null);
-    const { user } = useContext(AuthContext);
+    const { userSession } = useAuth();
     const [expenseModalText, setExpenseModalText] = useState<string>("");
     const [displayDeleteModal, setDisplayDeleteModal] = useState<boolean>(false);
     const [displayExpenseModal, setDisplayExpenseModal] = useState<boolean>(false);
@@ -33,7 +33,7 @@ function ExpensePage() {
         fetchServer({
             route: EXPENSE_ROUTE,
             method: "GET",
-            user: user,
+            user: userSession,
         }).then(response => {
             setExpenses(response);
             setLoading(false);
@@ -104,7 +104,7 @@ function ExpensePage() {
         fetchServer({
             route: EXPENSE_ROUTE,
             method: "DELETE",
-            user: user,
+            user: userSession,
             body: JSON.stringify({ ids })
         }).then(() => {
             const filteredExpenses = expenses.filter(

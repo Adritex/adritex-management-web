@@ -12,12 +12,12 @@ import { PayrollModal } from "../../components/modals/PayrollModal";
 import { DeleteModal } from "../../components/modals/DeleteModal";
 import { EMPLOYEE_ROUTE, PAYROLLS_ROUTE } from '../../server/configs';
 import { useContext } from 'react';
-import { AuthContext } from '../../contexts/authContext';
 import { fetchServer } from '../../server';
+import { useAuth } from '../../contexts/authContext';
 
 function PaymentPage() {
     const toast = useRef<any>(null);
-    const { user } = useContext(AuthContext);
+    const { userSession } = useAuth();
     const [payrollModalText, setPayrollModalText] = useState<string>("");
     const [displayDeleteModal, setDisplayDeleteModal] = useState<boolean>(false);
     const [displayPayrollModal, setDisplayPayrollModal] = useState<boolean>(false);
@@ -37,7 +37,7 @@ function PaymentPage() {
         fetchServer({
             route: PAYROLLS_ROUTE,
             method: "GET",
-            user: user,
+            user: userSession,
         }).then(response => {
             setPayrolls(response);
             setLoading(false);
@@ -46,7 +46,7 @@ function PaymentPage() {
         fetchServer({
             route: EMPLOYEE_ROUTE,
             method: "GET",
-            user: user,
+            user: userSession,
         }).then(response => {
             setEmployees(response);
             setLoading(false);
@@ -126,7 +126,7 @@ function PaymentPage() {
         fetchServer({
             route: PAYROLLS_ROUTE,
             method: "DELETE",
-            user: user,
+            user: userSession,
             body: JSON.stringify({ ids })
         }).then(() => {
             const filteredPayrolls = payrolls.filter(

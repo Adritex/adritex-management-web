@@ -16,7 +16,7 @@ import {
     UseFormSetValue
 } from 'react-hook-form';
 import { fetchServer } from "../../server";
-import { AuthContext } from "../../contexts/authContext";
+import { useAuth } from "../../contexts/authContext";
 
 
 type CustomerModalProps = {
@@ -34,7 +34,7 @@ type CustomerModalProps = {
 };
 
 export function CustomerModal(props: CustomerModalProps) {
-    const { user } = useContext(AuthContext);
+    const { userSession } = useAuth();
     const [formData, setFormData] = useState({});
 
     function onSubmit(data: CustomerModel) {
@@ -46,7 +46,7 @@ export function CustomerModal(props: CustomerModalProps) {
         fetchServer({
             route: route,
             method: "POST",
-            user: user,
+            user: userSession,
             body: JSON.stringify(data)
         }).then((response: CustomerModel) => {
             props.reset();

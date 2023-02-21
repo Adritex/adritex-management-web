@@ -13,14 +13,14 @@ import { Toast } from 'primereact/toast';
 import { DataTableHeader } from "../../components/DataTableHeader";
 import { ProductModal } from "../../components/modals/ProductModal";
 import { DeleteModal } from "../../components/modals/DeleteModal";
-import { AuthContext } from "../../contexts/authContext";
 import { fetchServer } from "../../server";
 import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable';
+import { useAuth } from "../../contexts/authContext";
 
 function ProductPage() {
     const toast = useRef<any>(null);
-    const { user } = useContext(AuthContext);
+    const { userSession } = useAuth();
     const [productModalText, setProductModalText] = useState<string>("");
     const [displayDeleteModal, setDisplayDeleteModal] = useState<boolean>(false);
     const [displayProductModal, setDisplayProductModal] = useState<boolean>(false);
@@ -47,7 +47,7 @@ function ProductPage() {
         fetchServer({
             route: PRODUCT_ROUTE,
             method: "GET",
-            user: user,
+            user: userSession,
         }).then(response => {
             setProducts(response);
             setLoading(false);
@@ -56,7 +56,7 @@ function ProductPage() {
         fetchServer({
             route: CUSTOMER_ROUTE,
             method: "GET",
-            user: user,
+            user: userSession,
         }).then(response => {
             setCustomers(response);
             setLoading(false);
@@ -154,7 +154,7 @@ function ProductPage() {
             fetchServer({
                 route: PRODUCT_ROUTE,
                 method: "DELETE",
-                user: user,
+                user: userSession,
                 body: JSON.stringify({ ids })
             }).then(() => {
                 const filteredProducts = products.filter(

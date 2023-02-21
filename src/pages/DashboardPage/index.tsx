@@ -7,7 +7,7 @@ import { Row } from 'primereact/row';
 import { Chart } from 'primereact/chart';
 import { fetchServer } from "../../server";
 import { CUSTOMER_ROUTE, DASHBOARD_ROUTE } from "../../server/configs";
-import { AuthContext } from "../../contexts/authContext";
+import { useAuth } from "../../contexts/authContext";
 
 interface ProductTable {
     customer: string;
@@ -26,7 +26,7 @@ interface AnnualBilling {
 }
 
 function DashboardPage() {
-    const { user } = useContext(AuthContext);
+    const { userSession } = useAuth();
     const [expenses, setExpenses] = useState<ExpenseTable[]>([]);
     const [products, setProducts] = useState<ProductTable[]>([]);
     const [basicData, setBasicData] = useState<any>();
@@ -37,7 +37,7 @@ function DashboardPage() {
         fetchServer({
             route: DASHBOARD_ROUTE,
             method: "GET",
-            user: user,
+            user: userSession,
         }).then(response => {
             setExpenses(response.expenses);
             setProducts(response.products);

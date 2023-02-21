@@ -5,7 +5,7 @@ import { ProductModel } from "../../models/productModel";
 import { ProductOrderModel } from "../../models/productOrderModel";
 import { CUSTOMER_ROUTE, ORDERS_ROUTE, PRODUCT_ORDERS_ROUTE } from "../../server/configs";
 import { fetchServer } from "../../server";
-import { AuthContext } from "../../contexts/authContext";
+import { useAuth } from "../../contexts/authContext";
 
 import { PickList, PickListChangeParams } from 'primereact/picklist';
 import { SelectButton } from 'primereact/selectbutton';
@@ -17,7 +17,7 @@ import { CustomerModel } from "../../models/customerModel";
 
 function OrderPage() {
     const toast = useRef<any>(null);
-    const { user } = useContext(AuthContext);
+    const { userSession } = useAuth();
     const [source, setSource] = useState<ProductModel[]>([]);
     const [target, setTarget] = useState<ProductModel[]>([]);
     const [productOrders, setProductOrders] = useState<ProductOrderModel[]>([]);
@@ -30,7 +30,7 @@ function OrderPage() {
         fetchServer({
             route: CUSTOMER_ROUTE,
             method: "GET",
-            user: user
+            user: userSession
         }).then((customers: CustomerModel[]) => {
             setCustomers(customers);
         });
@@ -38,12 +38,12 @@ function OrderPage() {
         fetchServer({
             route: PRODUCT_ORDERS_ROUTE,
             method: "GET",
-            user: user,
+            user: userSession,
         }).then((products: any[]) => {
             fetchServer({
                 route: ORDERS_ROUTE,
                 method: "GET",
-                user: user,
+                user: userSession,
             }).then((productOrders: any[]) => {
                 const targetProducts: ProductModel[] = [];
                 const targetProductOrders: ProductOrderModel[] = [];
@@ -211,7 +211,7 @@ function OrderPage() {
         fetchServer({
             route: `${ORDERS_ROUTE}/${selectedProductOrder.id}/finish`,
             method: "POST",
-            user: user,
+            user: userSession,
             body: JSON.stringify({ date: date })
         }).then((response) => {
             const productOrder: ProductOrderModel = response;
@@ -241,7 +241,7 @@ function OrderPage() {
                                 fetchServer({
                                     route: ORDERS_ROUTE,
                                     method: "POST",
-                                    user: user,
+                                    user: userSession,
                                     body: JSON.stringify({ orders: productOrders })
                                 }).then(() => {
                                     toast.current.show({

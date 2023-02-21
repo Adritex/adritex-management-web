@@ -9,7 +9,7 @@ import { Image } from "primereact/image";
 import { ProgressBar } from 'primereact/progressbar';
 import { Divider } from "primereact/divider";
 import { PriorityType } from "../../enums/priorityType";
-import { AuthContext } from "../../contexts/authContext";
+import { useAuth } from "../../contexts/authContext";
 import { fetchServer } from "../../server";
 import { Button } from "primereact/button";
 import { GoalModal } from "../../components/modals/GoalModal";
@@ -17,7 +17,7 @@ import { GoalModel } from "../../models/goalModel";
 import { CustomerModel } from "../../models/customerModel";
 
 function HomePage() {
-    const { user } = useContext(AuthContext);
+    const { userSession } = useAuth();
     const [goal, setGoal] = useState<GoalModel>(GoalModel.empty());
     const [progressbar, setProgressbar] = useState<number>(0);
     const [lowOrder, setLowOrder] = useState<ProductOrderModel[]>([]);
@@ -35,7 +35,7 @@ function HomePage() {
         fetchServer({
             route: GOAL_ROUTE,
             method: "GET",
-            user: user
+            user: userSession
         }).then((response: GoalModel) => {
             setGoal(response);
             setProgressbar(getProgress(response));
@@ -44,19 +44,19 @@ function HomePage() {
         fetchServer({
             route: CUSTOMER_ROUTE,
             method: "GET",
-            user: user
+            user: userSession
         }).then((customers: CustomerModel[]) => {
             setCustomers(customers);
 
             fetchServer({
                 route: PRODUCT_ORDERS_ROUTE,
                 method: "GET",
-                user: user
+                user: userSession
             }).then((products: ProductModel[]) => {
                 fetchServer({
                     route: ORDERS_ROUTE,
                     method: "GET",
-                    user: user
+                    user: userSession
                 }).then((productOrders: ProductOrderModel[]) => {
                     const low: ProductOrderModel[] = [];
                     const medium: ProductOrderModel[] = [];
@@ -146,7 +146,7 @@ function HomePage() {
             <div className="card">
                 <div className="flex align-items-center justify-content-between">
                     <h5>Meta de produção</h5>
-                    {user?.accessType == 0 ? (
+                    {userSession?.accessType == 0 ? (
                         <Button
                             label="Definir metas"
                             onClick={() => {
@@ -221,7 +221,7 @@ function HomePage() {
                     fetchServer({
                         route: GOAL_ROUTE,
                         method: "POST",
-                        user: user,
+                        user: userSession,
                         body: JSON.stringify({
                             currentQuantity: goal.currentQuantity,
                             expectedQuantity: goal.expectedQuantity

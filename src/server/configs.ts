@@ -1,14 +1,14 @@
-const API_HOST = "http://localhost:3000/api";
+const API_HOST = "http://localhost:8050/api";
 const CUSTOMER_ROUTE = `${API_HOST}/customers`;
 const EMPLOYEE_ROUTE = `${API_HOST}/employees`;
-const EXPENSE_ROUTE = `${API_HOST}/financial/expenses`;
-const PAYROLLS_ROUTE = `${API_HOST}/financial/payrolls`;
-const PRODUCT_ROUTE = `${API_HOST}/demand/products`;
+const EXPENSE_ROUTE = `${API_HOST}/expenses`;
+const PAYROLLS_ROUTE = `${API_HOST}/payrolls`;
+const PRODUCT_ROUTE = `${API_HOST}/products`;
 const PRODUCT_ORDERS_ROUTE = `${API_HOST}/demand/products/in-orders`;
-const ORDERS_ROUTE = `${API_HOST}/demand/orders`;
-const GOAL_ROUTE = `${API_HOST}/demand/goals`;
-const LOGIN_ROUTE = `${API_HOST}/login`;
-const PING_ROUTE = `${API_HOST}/ping`;
+const ORDERS_ROUTE = `${API_HOST}/product-orders`;
+const GOAL_ROUTE = `${API_HOST}/goals`;
+const LOGIN_ROUTE = `${API_HOST}/auth/login`;
+const PING_ROUTE = `${API_HOST}/auth/ping`;
 const DASHBOARD_ROUTE = `${API_HOST}/dashboard`;
 
 export {

@@ -21,7 +21,7 @@ import {
 } from 'react-hook-form';
 import { PAYROLLS_ROUTE } from "../../server/configs";
 import { fetchServer } from "../../server";
-import { AuthContext } from "../../contexts/authContext";
+import { useAuth } from "../../contexts/authContext";
 
 type PayrollModalProps = {
     payrollModalText: string,
@@ -39,7 +39,7 @@ type PayrollModalProps = {
 }
 
 export function PayrollModal(props: PayrollModalProps) {
-    const { user } = useContext(AuthContext);
+    const { userSession } = useAuth();
     const [formData, setFormData] = useState({});
     const [selectedEmployee, setSelectedEmployee] = useState<any>("");
     const [employeeOptions, setEmployeeOptions] = useState<any[]>([]);
@@ -78,7 +78,7 @@ export function PayrollModal(props: PayrollModalProps) {
         fetchServer({
             route: route,
             method: "POST",
-            user: user,
+            user: userSession,
             body: JSON.stringify({
                 id: data.id,
                 idEmployee: data.idEmployee,

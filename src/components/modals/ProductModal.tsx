@@ -21,7 +21,7 @@ import {
     UseFormSetValue
 } from 'react-hook-form';
 import { fetchServer } from "../../server";
-import { AuthContext } from "../../contexts/authContext";
+import { useAuth } from "../../contexts/authContext";
 
 type ProductModalProps = {
     productModalText: string,
@@ -39,7 +39,7 @@ type ProductModalProps = {
 }
 
 export function ProductModal(props: ProductModalProps) {
-    const { user } = useContext(AuthContext);
+    const { userSession } = useAuth();
     const [formData, setFormData] = useState({});
     const [image, setImage] = useState<any>("");
     const [amount, setAmount] = useState<any>(props.product.amount);
@@ -71,7 +71,7 @@ export function ProductModal(props: ProductModalProps) {
         fetchServer({
             route: route,
             method: "POST",
-            user: user,
+            user: userSession,
             body: JSON.stringify({
                 id: product.id,
                 customer: product.customer,
@@ -101,7 +101,7 @@ export function ProductModal(props: ProductModalProps) {
                 fetchServer({
                     route: `${PRODUCT_ROUTE}/${responseProduct.id}`,
                     method: "POST",
-                    user: user,
+                    user: userSession,
                     body: JSON.stringify({
                         id: responseProduct.id,
                         customer: product.customer,
