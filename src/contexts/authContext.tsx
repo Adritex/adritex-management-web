@@ -31,7 +31,7 @@ export function AuthProvider({ children }: any) {
                     method: "GET",
                     user: userSession,
                 });
-    
+                
                 if(response) {
                    setUserSession(userSession); 
                 } else {
