@@ -1,140 +1,157 @@
-import { useContext, useState } from "react";
+import { Button } from 'primereact/button';
+import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputMask } from 'primereact/inputmask';
-import { Dialog } from "primereact/dialog";
-import { Button } from "primereact/button";
+import { Message } from 'primereact/message';
+
 import { classNames } from 'primereact/utils';
-import { CustomerModel } from "../../models/customerModel";
-import { CUSTOMER_ROUTE } from "../../server/configs";
-import {
-    Controller,
-    Control,
-    FieldErrorsImpl,
-    DeepRequired,
-    UseFormHandleSubmit,
-    UseFormReset,
-    UseFormSetValue
-} from 'react-hook-form';
-import { fetchServer } from "../../server";
-import { useAuth } from "../../contexts/authContext";
+import { useEffect, useState } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { useAuth } from "../../contexts/authContext"
+import { CustomerModel } from "../../models/customerModel"
+import { fetchServer } from "../../server"
+import { CUSTOMER_ROUTE } from "../../server/configs"
 
-
-type CustomerModalProps = {
-    customerModalText: string,
-    displayCustomerModal: boolean,
-    setDisplayCustomerModal: (display: boolean) => void,
-    customer: CustomerModel,
-    setCustomer: (customer: CustomerModel) => void,
-    onClickSave: (customer: CustomerModel) => void,
-    control: Control<CustomerModel, object>,
-    errors: FieldErrorsImpl<DeepRequired<CustomerModel>>,
-    handleSubmit: UseFormHandleSubmit<CustomerModel>,
-    reset: UseFormReset<CustomerModel>,
-    setValue: UseFormSetValue<CustomerModel>
-};
+export type CustomerModalProps = {
+    onSave(customer: CustomerModel): void
+    displayCustomerModal: boolean
+    setDisplayCustomerModal(display: boolean): void
+    action: 'Insert' | 'Update'
+    customer: CustomerModel | null
+}
 
 export function CustomerModal(props: CustomerModalProps) {
     const { userSession } = useAuth();
-    const [formData, setFormData] = useState({});
+    const [textError, setTextError] = useState<string>('');
+    const [modalText, setModalText] = useState<string>('');
+    const [method, setMethod] = useState<"POST" | "GET" | "DELETE" | "PUT">('POST');
+    const [url, setUrl] = useState<string>('');
+    const { handleSubmit, formState: { errors }, reset, control, setValue } = useForm<CustomerModel>({
+        defaultValues: {}
+    });
 
-    function onSubmit(data: CustomerModel) {
-        setFormData(data);
+    useEffect(() => {
+        if (props.action == 'Insert') {
+            setUrl(CUSTOMER_ROUTE);
+            setMethod('POST');
+            setModalText('Adicionar cliente');
+            setValue('id', '');
+            setValue('name', '');
+            setValue('cnpj', '');
+            setValue('initials', '');
+        } else {
+            setMethod('PUT');
+            setUrl(`${CUSTOMER_ROUTE}/${props.customer?.id}`);
+            setModalText('Alterar cliente');
+            setValue('id', props.customer?.id || '');
+            setValue('name', props.customer?.name || '');
+            setValue('cnpj', props.customer?.cnpj || '');
+            setValue('initials', props.customer?.initials || '');
+        }
+    }, [props.action]);
 
-        let route: string = CUSTOMER_ROUTE;
-        route += data.id ? `/${data.id}` : '';
-
+    async function onSubmit(customer: CustomerModel) {
         fetchServer({
-            route: route,
-            method: "POST",
+            route: url,
+            method: method,
             user: userSession,
-            body: JSON.stringify(data)
-        }).then((response: CustomerModel) => {
-            props.reset();
-            props.onClickSave(response);
-            props.setDisplayCustomerModal(false);
-        })
+            body: JSON.stringify(customer)
+        }).then(response => {
+            if (response.error) {
+                setTextError(response.error);
+            } else {
+                reset();
+                setTextError('');
+                props.onSave(response);
+                props.setDisplayCustomerModal(false);
+            }
+        });
     }
 
-    function getFormErrorMessage(propertyName: string) {
-        const property = props.errors[propertyName as keyof CustomerModel];
+    function getFormErrorMessage(propery: string) {
+        const error = errors[propery as keyof CustomerModel];
 
-        if (property) {
-            return (
-                <small className="p-error">
-                    {property.message}
-                </small>
-            );
+        if (error) {
+            return <small className='p-error'>{error?.message}</small>
         }
     }
 
     return (
         <Dialog
-            header={props.customerModalText}
+            header={modalText}
             visible={props.displayCustomerModal}
-            modal
-            breakpoints={{ '960px': '75vw' }}
+            modal breakpoints={{ '960px': '75vw' }}
             style={{ width: '40vw' }}
             onHide={() => {
-                props.reset();
+                reset();
                 props.setDisplayCustomerModal(false);
             }}>
-            <div className="pt-4">
-                <form onSubmit={props.handleSubmit(onSubmit)} className="formgrid grid p-fluid">
-                    <Controller name="id" control={props.control} render={({ field, fieldState }) => (
-                        <InputText
-                            id={field.name} {...field} autoFocus hidden
-                        />
-                    )} />
-                    <div className="field col-12 md:col-12 mb-4">
-                        <label htmlFor="name" className={classNames({ 'p-error': props.errors.name })}>Name*</label>
-                        <Controller name="name" control={props.control} rules={{ required: 'Campo é obrigatório.' }} render={({ field, fieldState }) => (
-                            <InputText
-                                id={field.name} {...field} autoFocus
-                                className={classNames({ 'p-invalid': fieldState.invalid })}
-                            />
-                        )} />
-                        {getFormErrorMessage('name')}
-                    </div>
-                    <div className="field col-12 md:col-6">
-                        <label htmlFor="initials" className={classNames({ 'p-error': props.errors.name })}>Sigla*</label>
-                        <Controller name="initials" control={props.control} rules={{ required: 'Campo é obrigatório.' }} render={({ field, fieldState }) => (
-                            <InputText
-                                id={field.name} {...field}
-                                className={classNames({ 'p-invalid': fieldState.invalid })}
-                            />
-                        )} />
-                        {getFormErrorMessage('initials')}
-                    </div>
-                    <div className="field col-12 md:col-6">
-                        <label htmlFor="cnpj" className={classNames({ 'p-error': props.errors.name })}>CNPJ*</label>
-                        <Controller name="cnpj" control={props.control} rules={{ required: 'Campo é obrigatório e único.' }} render={({ field, fieldState }) => (
-                            <InputMask
-                                mask="99.999.999/9999-99"
-                                id={field.name} {...field}
-                                className={classNames({ 'p-invalid': fieldState.invalid })}
-                            />
-                        )} />
-                        {getFormErrorMessage('cnpj')}
-                    </div>
+            {textError ? <Message severity='error' text={textError} className='w-full mb-2' /> : <></>}
+            <form onSubmit={handleSubmit(onSubmit)} className="formgrid grid p-fluid">
+                <Controller name="id" control={control} render={({ field, fieldState }) => (
+                    <InputText id={field.name} {...field} autoFocus hidden />
+                )} />
+                <Controller
+                    name='name'
+                    control={control}
+                    rules={{ required: 'Nome é obrigatório.' }}
+                    render={({ field, fieldState }) => {
+                        return (
+                            <div className='field col-12 md:col-12'>
+                                <label htmlFor={field.name} className={classNames({ 'p-error': errors.name })}>Nome*</label>
+                                <InputText id={field.name} {...field} className={classNames({ 'p-invalid': fieldState.error })} />
+                                {getFormErrorMessage(field.name)}
+                            </div>
+                        );
+                    }}
+                />
+                <Controller
+                    name='initials'
+                    control={control}
+                    rules={{ required: 'Sigla é obrigatória.' }}
+                    render={({ field, fieldState }) => {
+                        return (
+                            <div className='field col-12 md:col-6'>
+                                <label htmlFor={field.name} className={classNames({ 'p-error': errors.name })}>Sigla*</label>
+                                <InputText id={field.name} {...field} className={classNames({ 'p-invalid': fieldState.error })} />
+                                {getFormErrorMessage(field.name)}
+                            </div>
+                        );
+                    }}
+                />
+                <Controller
+                    name='cnpj'
+                    control={control}
+                    rules={{ required: 'CNPJ é obrigatório.' }}
+                    render={({ field, fieldState }) => {
+                        return (
+                            <div className='field col-12 md:col-6'>
+                                <label htmlFor={field.name} className={classNames({ 'p-error': errors.name })}>CNPJ*</label>
+                                <InputMask id={field.name} {...field} mask="99.999.999/9999-99" className={classNames({ 'p-invalid': fieldState.error })} />
+                                {getFormErrorMessage(field.name)}
+                            </div>
+                        );
+                    }}
+                />
 
-                    <div className="field col-12 flex justify-content-end gap-3">
-                        <Button
-                            type="button"
-                            icon="pi pi-times"
-                            label="Cancelar"
-                            className="p-button-text"
-                            onClick={() => {
-                                props.reset();
-                                props.setDisplayCustomerModal(false);
-                            }} />
-                        <Button
-                            type="submit"
-                            icon="pi pi-check"
-                            label="Salvar"
-                        />
-                    </div>
-                </form>
-            </div>
+
+                <div className="field col-12 flex justify-content-end gap-3">
+                    <Button
+                        type="button"
+                        icon="pi pi-times"
+                        label="Cancelar"
+                        className="p-button-text"
+                        onClick={() => {
+                            reset();
+                            props.setDisplayCustomerModal(false);
+                        }} />
+                    <Button
+                        type="submit"
+                        icon="pi pi-check"
+                        label="Salvar"
+                    />
+                </div>
+            </form>
         </Dialog>
     );
 }

@@ -1,6 +1,6 @@
 interface IFetchProps {
     route: string;
-    method: "POST" | "GET" | "DELETE";
+    method: "POST" | "GET" | "DELETE" | "PUT";
     body?: string;
     user: any;
 }

@@ -31,11 +31,11 @@ export function AuthProvider({ children }: any) {
                     method: "GET",
                     user: userSession,
                 });
-                
-                if(response) {
-                   setUserSession(userSession); 
-                } else {
+
+                if(response?.message == 'Unauthorized') {
                     logout();
+                } else {
+                    setUserSession(userSession); 
                 }
             } else {
                 logout();

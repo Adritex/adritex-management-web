@@ -16,14 +16,13 @@ import { useAuth } from "../../contexts/authContext";
 function CustomerPage() {
     const toast = useRef<any>(null);
     const { userSession } = useAuth();
-    const [customerModalText, setCustomerModalText] = useState<string>("");
     const [displayDeleteModal, setDisplayDeleteModal] = useState<boolean>(false);
+
     const [displayCustomerModal, setDisplayCustomerModal] = useState<boolean>(false);
-    const { control, formState: { errors }, handleSubmit, reset, setValue } = useForm({
-        defaultValues: CustomerModel.empty()
-    });
+    const [action, setAction] = useState<'Insert' | 'Update'>('Insert');
+
     const [customers, setCustomers] = useState<CustomerModel[]>([]);
-    const [customer, setCustomer] = useState<CustomerModel>(CustomerModel.empty());
+    const [customer, setCustomer] = useState<CustomerModel | null>(null);
     const [selectedCustomers, setSelectedCustomers] = useState<CustomerModel[]>([]);
     const [filters, setFilters] = useState({ "global": { value: null, matchMode: FilterMatchMode.CONTAINS } })
     const [globalFilterValue, setGlobalFilterValue] = useState("");
@@ -53,25 +52,14 @@ function CustomerPage() {
                 onClickExportPDF={() => { }}
                 onClickExportXLS={() => { }}
                 onClickNewItem={() => {
-                    setCustomerModalText("Adicionar cliente");
-                    setCustomer(CustomerModel.empty());
+                    setCustomer(null);
+                    setAction('Insert');
                     setDisplayCustomerModal(true);
                 }}
                 onClickUpdateItem={() => {
-                    setCustomerModalText("Alterar cliente");
-
                     var selectedCustomer = CustomerModel.clone(selectedCustomers[0]);
                     setCustomer(selectedCustomer);
-
-                    if (selectedCustomer.name)
-                        setValue("name", selectedCustomer.name);
-                    if (selectedCustomer.initials)
-                        setValue("initials", selectedCustomer.initials)
-                    if (selectedCustomer.cnpj)
-                        setValue("cnpj", selectedCustomer.cnpj);
-                    if (selectedCustomer.id)
-                        setValue("id", selectedCustomer.id);
-
+                    setAction('Update');
                     setDisplayCustomerModal(true);
                 }}
                 onClickDeleteItem={() => {
@@ -138,17 +126,11 @@ function CustomerPage() {
             </div>
 
             <CustomerModal
-                customerModalText={customerModalText}
+                action={action}
+                customer={customer}
+                onSave={onSave}
                 displayCustomerModal={displayCustomerModal}
                 setDisplayCustomerModal={setDisplayCustomerModal}
-                customer={customer}
-                setCustomer={setCustomer}
-                onClickSave={onSave}
-                control={control}
-                errors={errors}
-                handleSubmit={handleSubmit}
-                reset={reset}
-                setValue={setValue}
             />
 
             <DeleteModal
