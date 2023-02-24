@@ -1,171 +1,177 @@
-import { useContext, useState } from "react";
-import { InputText } from 'primereact/inputtext';
-import { InputMask } from 'primereact/inputmask';
-import { Calendar } from 'primereact/calendar';
-import { addLocale, locale } from 'primereact/api';
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
-import { classNames } from 'primereact/utils';
-import { Checkbox } from 'primereact/checkbox';
-import { EmployeeModel } from "../../models/employeeModel";
-import { EMPLOYEE_ROUTE } from "../../server/configs";
-import {
-    Controller,
-    Control,
-    FieldErrorsImpl,
-    DeepRequired,
-    UseFormHandleSubmit,
-    UseFormReset,
-    UseFormSetValue
-} from 'react-hook-form';
-import { fetchServer } from "../../server";
-import { useAuth } from "../../contexts/authContext";
+import { InputMask } from "primereact/inputmask";
+import { InputText } from "primereact/inputtext";
+import { Message } from "primereact/message";
+import { Calendar } from "primereact/calendar";
+import { Checkbox } from "primereact/checkbox";
 
-type EmployeeModalProps = {
-    employeeModalText: string,
-    displayEmployeeModal: boolean,
-    setDisplayEmployeeModal: (display: boolean) => void,
-    employee: EmployeeModel,
-    setEmployee: (employee: EmployeeModel) => void,
-    onClickSave: (employee: EmployeeModel) => void,
-    control: Control<EmployeeModel, object>,
-    errors: FieldErrorsImpl<DeepRequired<EmployeeModel>>,
-    handleSubmit: UseFormHandleSubmit<EmployeeModel>,
-    reset: UseFormReset<EmployeeModel>,
-    setValue: UseFormSetValue<EmployeeModel>
-};
+import { classNames } from "primereact/utils";
+import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { useAuth } from "../../contexts/authContext";
+import { EmployeeModel } from "../../models/employeeModel";
+import { fetchServer } from "../../server";
+import { EMPLOYEE_ROUTE } from "../../server/configs";
+
+export type EmployeeModalProps = {
+    onSave(employee: EmployeeModel): void
+    displayEmployeeModal: boolean
+    setDisplayEmployeeModal(display: boolean): void
+    action: 'Insert' | 'Update'
+    setAction(action: 'Insert' | 'Update'): void
+    employee: EmployeeModel | null
+}
 
 export function EmployeeModal(props: EmployeeModalProps) {
     const { userSession } = useAuth();
-    const [formData, setFormData] = useState({});
-    const [checked, setChecked] = useState<boolean>(true);
-    const [date, setDate] = useState<any>(props.employee.birthDate);
-
-    addLocale('pt', {
-        firstDayOfWeek: 1,
-        dayNames: ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"],
-        dayNamesShort: ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"],
-        dayNamesMin: ["Do", "Se", "Te", "Qa", "Qi", "Sx", "Sa"],
-        monthNames: ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
-        monthNamesShort: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
-        today: "Hoje",
-        clear: 'Limpar'
+    const [textError, setTextError] = useState<string>('');
+    const [modalText, setModalText] = useState<string>('');
+    const [method, setMethod] = useState<'POST' | 'GET' | 'PUT' | 'DELETE'>('POST');
+    const [url, setUrl] = useState<string>('');
+    const { handleSubmit, formState: { errors }, reset, control, setValue } = useForm<EmployeeModel>({
+        defaultValues: {}
     });
 
-    locale('pt');
+    useEffect(() => {
+        if (props.action == 'Insert') {
+            setMethod('POST');
+            setUrl(`${EMPLOYEE_ROUTE}`);
+            setModalText('Adicionar funcionário');
+            setValue('id', '');
+            setValue('name', '');
+            setValue('cpf', '');
+            setValue('birthDate', new Date());
+            setValue('active', true);
+        } else {
+            console.log(props.employee)
+            setMethod('PUT');
+            setUrl(`${EMPLOYEE_ROUTE}/${props.employee?.id}`);
+            setModalText('Alterar funcionário');
+            setValue('id', props.employee?.id || '');
+            setValue('name', props.employee?.name || '');
+            setValue('cpf', props.employee?.cpf || '');
+            setValue('birthDate', new Date(props.employee?.birthDate || '') || new Date());
+            setValue('active', props.employee?.active || false);
+        }
+    }, [props.action]);
 
-    function onSubmit(data: EmployeeModel) {
-        setFormData(data);
-
-        data.birthDate = date;
-        data.active = checked;
-
-        let route: string = EMPLOYEE_ROUTE;
-        route += data.id ? `/${data.id}` : '';
-
+    async function onSubmit(employee: EmployeeModel) {
         fetchServer({
-            route: route,
-            method: "POST",
+            route: url,
+            method: method,
             user: userSession,
-            body: JSON.stringify(data)
-        }).then((response: EmployeeModel) => {
-            props.reset();
-            props.onClickSave(response);
-            props.setDisplayEmployeeModal(false);
-            setDate(null);
-            setChecked(false);
-        });
+            body: JSON.stringify(employee)
+        }).then(response => {
+            if (response.error) {
+                setTextError(response.error);
+            } else {
+                reset();
+                setTextError('');
+                props.onSave(response);
+                props.setDisplayEmployeeModal(false);
+            }
+        })
     }
 
-    function getFormErrorMessage(propertyName: string) {
-        const property = props.errors[propertyName as keyof EmployeeModel];
+    function getFormErrorMessage(property: string) {
+        const error = errors[property as keyof EmployeeModel];
 
-        if (property) {
-            return (
-                <small className="p-error">
-                    {property.message}
-                </small>
-            );
+        if (error) {
+            return <small className='p-error'>{error?.message}</small>
         }
     }
 
     return (
         <Dialog
-            header={props.employeeModalText}
+            header={modalText}
             visible={props.displayEmployeeModal}
-            modal
-            breakpoints={{ '960px': '75vw' }}
+            modal breakpoints={{ '960px': '75vw' }}
             style={{ width: '40vw' }}
-            onShow={() => {
-                setDate(new Date(props.employee.birthDate));
-                setChecked(props.employee.active);
-            }}
             onHide={() => {
-                props.reset();
-                setDate(null);
-                setChecked(false);
+                reset();
+                props.setAction('Insert');
                 props.setDisplayEmployeeModal(false);
             }}>
-            <div className="pt-4">
-                <form onSubmit={props.handleSubmit(onSubmit)} className="formgrid grid p-fluid">
-                    <Controller name="id" control={props.control} render={({ field, fieldState }) => (
-                        <InputText
-                            id={field.name} {...field} autoFocus hidden
-                        />
-                    )} />
-                    <div className="field col-12 md:col-12 mb-4">
-                        <label htmlFor="name" className={classNames({ 'p-error': props.errors.name })}>Name*</label>
-                        <Controller name="name" control={props.control} rules={{ required: 'Nome do funcionário é obrigatório.' }} render={({ field, fieldState }) => (
-                            <InputText
-                                id={field.name} {...field} autoFocus
-                                className={classNames({ 'p-invalid': fieldState.invalid })}
-                            />
-                        )} />
-                        {getFormErrorMessage('name')}
-                    </div>
-                    <div className="field col-12 md:col-6">
-                        <label htmlFor="birthDate">Data de nascimento</label>
-                        <Calendar
-                            id={"birthDate"} showIcon dateFormat="dd/mm/yy"
-                            value={date} onChange={(e) => setDate(e.value)}
-                        />
-                    </div>
-                    <div className="field col-12 md:col-6">
-                        <label htmlFor="cpf" className={classNames({ 'p-error': props.errors.name })}>CPF*</label>
-                        <Controller name="cpf" control={props.control} rules={{ required: 'CPF do funcionário é obrigatório.' }} render={({ field, fieldState }) => (
-                            <InputMask
-                                mask="999.999.999-99"
-                                id={field.name} {...field}
-                                className={classNames({ 'p-invalid': fieldState.invalid })}
-                            />
-                        )} />
-                        {getFormErrorMessage('cpf')}
-                    </div>
-                    <div className="field col-12 md:col-6">
-                        <div className="field-checkbox">
-                            <Checkbox id="active" checked={checked} onChange={e => setChecked(e.checked)} />
-                            <label htmlFor="active">Ativo</label>
-                        </div>
-                    </div>
+            {textError ? <Message severity='error' text={textError} className='w-full mb-2' /> : <></>}
+            <form onSubmit={handleSubmit(onSubmit)} className="formgrid grid p-fluid">
+                <Controller name="id" control={control} render={({ field, fieldState }) => (
+                    <InputText id={field.name} {...field} autoFocus hidden />
+                )} />
+                <Controller
+                    name='name'
+                    control={control}
+                    rules={{ required: 'Nome é obrigatório.' }}
+                    render={({ field, fieldState }) => {
+                        return (
+                            <div className='field col-12 md:col-12'>
+                                <label htmlFor={field.name} className={classNames({ 'p-error': errors.name })}>Nome*</label>
+                                <InputText id={field.name} {...field} className={classNames({ 'p-invalid': fieldState.error })} />
+                                {getFormErrorMessage(field.name)}
+                            </div>
+                        );
+                    }}
+                />
+                <Controller
+                    name='birthDate'
+                    control={control}
+                    rules={{ required: 'Data de nascimento é obrigatória.' }}
+                    render={({ field, fieldState }) => {
+                        return (
+                            <div className='field col-12 md:col-6'>
+                                <label htmlFor={field.name} className={classNames({ 'p-error': errors.name })}>Data de nascimento*</label>
+                                <Calendar showIcon dateFormat="dd/mm/yy" id={field.name} {...field} className={classNames({ 'p-invalid': fieldState.error })} />
+                                {getFormErrorMessage(field.name)}
+                            </div>
+                        );
+                    }}
+                />
+                <Controller
+                    name='cpf'
+                    control={control}
+                    rules={{ required: 'CPF é obrigatório.' }}
+                    render={({ field, fieldState }) => {
+                        return (
+                            <div className='field col-12 md:col-6'>
+                                <label htmlFor={field.name} className={classNames({ 'p-error': errors.name })}>CPF*</label>
+                                <InputMask mask="999.999.999-99" id={field.name} {...field} className={classNames({ 'p-invalid': fieldState.error })} />
+                                {getFormErrorMessage(field.name)}
+                            </div>
+                        );
+                    }}
+                />
+                <Controller
+                    name='active'
+                    control={control}
+                    render={({ field, fieldState }) => {
+                        return (
+                            <div className='field col-12 md:col-6'>
+                                <div className="field-checkbox">
+                                    <Checkbox id={field.name} {...field} checked={field.value} />
+                                    <label htmlFor={field.name}>Ativo</label>
+                                </div>
+                            </div>
+                        );
+                    }}
+                />
 
-                    <div className="field col-12 flex justify-content-end gap-3">
-                        <Button
-                            type="button"
-                            icon="pi pi-times"
-                            label="Cancelar"
-                            className="p-button-text"
-                            onClick={() => {
-                                props.reset();
-                                props.setDisplayEmployeeModal(false);
-                            }} />
-                        <Button
-                            type="submit"
-                            icon="pi pi-check"
-                            label="Salvar"
-                        />
-                    </div>
-                </form>
-            </div>
+                <div className="field col-12 flex justify-content-end gap-3">
+                    <Button
+                        type="button"
+                        icon="pi pi-times"
+                        label="Cancelar"
+                        className="p-button-text"
+                        onClick={() => {
+                            reset();
+                            props.setDisplayEmployeeModal(false);
+                        }} />
+                    <Button
+                        type="submit"
+                        icon="pi pi-check"
+                        label="Salvar"
+                    />
+                </div>
+            </form>
         </Dialog>
     );
 }

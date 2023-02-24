@@ -13,19 +13,19 @@ export class EmployeeModel {
         this.props = props;
     }
 
-    get id() {
+    get id(): string {
         return this.props.id;
     }
 
-    get name(){
+    get name(): string {
         return this.props.name;
     }
 
-    set name(name: string){
+    set name(name: string) {
         this.props.name = name;
     }
 
-    get cpf() {
+    get cpf(): string {
         return this.props.cpf;
     }
 
@@ -41,7 +41,7 @@ export class EmployeeModel {
         this.props.birthDate = birthDate;
     }
 
-    get active() {
+    get active(): boolean {
         return this.props.active;
     }
 

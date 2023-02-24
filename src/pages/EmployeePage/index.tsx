@@ -1,4 +1,3 @@
-import { useForm } from 'react-hook-form';
 import { useEffect, useState, useRef } from "react";
 import { EmployeeModel } from '../../models/employeeModel';
 
@@ -10,22 +9,18 @@ import { DataTableHeader } from '../../components/DataTableHeader';
 import { EmployeeModal } from '../../components/modals/EmployeeModal';
 import { DeleteModal } from '../../components/modals/DeleteModal';
 import { EMPLOYEE_ROUTE } from '../../server/configs';
-import { useContext } from 'react';
 import { fetchServer } from '../../server';
 import { useAuth } from '../../contexts/authContext';
 
 function EmployeePage() {
     const toast = useRef<any>(null);
     const { userSession } = useAuth();
-    const [employeeModalText, setEmployeeModalText] = useState<string>("");
     const [displayDeleteModal, setDisplayDeleteModal] = useState<boolean>(false);
     const [displayEmployeeModal, setDisplayEmployeeModal] = useState<boolean>(false);
-    const { control, formState: { errors }, handleSubmit, reset, setValue } = useForm({
-        defaultValues: EmployeeModel.empty()
-    });
+    const [action, setAction] = useState<'Insert' | 'Update'>('Insert');
 
-    const [employee, setEmployee] = useState<EmployeeModel>(EmployeeModel.empty());
     const [employees, setEmployees] = useState<EmployeeModel[]>([]);
+    const [employee, setEmployee] = useState<EmployeeModel | null>(null);
     const [selectedEmployees, setSelectedEmployees] = useState<EmployeeModel[]>([]);
     const [filters, setFilters] = useState({ "global": { value: null, matchMode: FilterMatchMode.CONTAINS } })
     const [globalFilterValue, setGlobalFilterValue] = useState("");
@@ -55,28 +50,14 @@ function EmployeePage() {
                 onClickExportPDF={() => { }}
                 onClickExportXLS={() => { }}
                 onClickNewItem={() => {
-                    setEmployeeModalText("Adicionar funcionário");
-                    setEmployee(EmployeeModel.empty());
-                    setValue("active", true);
+                    setEmployee(null);
+                    setAction('Insert');
                     setDisplayEmployeeModal(true);
                 }}
                 onClickUpdateItem={() => {
-                    setEmployeeModalText("Alterar funcionário");
-
                     var selectedEmployee = EmployeeModel.clone(selectedEmployees[0]);
                     setEmployee(selectedEmployee);
-
-                    if (selectedEmployee.name)
-                        setValue("name", selectedEmployee.name);
-                    if (selectedEmployee.birthDate)
-                        setValue("birthDate", selectedEmployee.birthDate)
-                    if (selectedEmployee.cpf)
-                        setValue("cpf", selectedEmployee.cpf);
-                    if (selectedEmployee.id)
-                        setValue("id", selectedEmployee.id);
-                    if (selectedEmployee.active)
-                        setValue("active", selectedEmployee.active);
-
+                    setAction('Update');
                     setDisplayEmployeeModal(true);
                 }}
                 onClickDeleteItem={() => {
@@ -168,17 +149,12 @@ function EmployeePage() {
             </div>
 
             <EmployeeModal
-                employeeModalText={employeeModalText}
+                action={action}
+                setAction={setAction}
+                employee={employee}
+                onSave={onSave}
                 displayEmployeeModal={displayEmployeeModal}
                 setDisplayEmployeeModal={setDisplayEmployeeModal}
-                employee={employee}
-                setEmployee={setEmployee}
-                onClickSave={onSave}
-                control={control}
-                errors={errors}
-                handleSubmit={handleSubmit}
-                reset={reset}
-                setValue={setValue}
             />
 
             <DeleteModal

@@ -68,8 +68,8 @@ export function CustomerModal(props: CustomerModalProps) {
         });
     }
 
-    function getFormErrorMessage(propery: string) {
-        const error = errors[propery as keyof CustomerModel];
+    function getFormErrorMessage(property: string) {
+        const error = errors[property as keyof CustomerModel];
 
         if (error) {
             return <small className='p-error'>{error?.message}</small>
