@@ -1,5 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useRef, useState } from "react";
 import { ExpenseModel } from "../../models/expenseModel";
 import { EXPENSE_ROUTE } from "../../server/configs";
 
@@ -16,14 +15,12 @@ import { useAuth } from "../../contexts/authContext";
 function ExpensePage() {
     const toast = useRef<any>(null);
     const { userSession } = useAuth();
-    const [expenseModalText, setExpenseModalText] = useState<string>("");
     const [displayDeleteModal, setDisplayDeleteModal] = useState<boolean>(false);
     const [displayExpenseModal, setDisplayExpenseModal] = useState<boolean>(false);
-    const { control, formState: { errors }, handleSubmit, reset, setValue } = useForm({
-        defaultValues: ExpenseModel.empty()
-    });
-    const [expense, setExpense] = useState<ExpenseModel>(ExpenseModel.empty);
+    const [action, setAction] = useState<'Insert' | 'Update'>('Insert');
+
     const [expenses, setExpenses] = useState<ExpenseModel[]>([]);
+    const [expense, setExpense] = useState<ExpenseModel | null>(null);
     const [selectedExpenses, setSelectedExpenses] = useState<ExpenseModel[]>([]);
     const [filters, setFilters] = useState({ "global": { value: null, matchMode: FilterMatchMode.CONTAINS } })
     const [globalFilterValue, setGlobalFilterValue] = useState("");
@@ -53,27 +50,14 @@ function ExpensePage() {
                 onClickExportPDF={() => { }}
                 onClickExportXLS={() => { }}
                 onClickNewItem={() => {
-                    setExpenseModalText("Adicionar despesa");
-                    setExpense(ExpenseModel.empty());
+                    setExpense(null);
+                    setAction('Insert');
                     setDisplayExpenseModal(true);
                 }}
                 onClickUpdateItem={() => {
-                    setExpenseModalText("Alterar despesa");
-
                     var selectedExpense = ExpenseModel.clone(selectedExpenses[0]);
                     setExpense(selectedExpense);
-
-                    if (selectedExpense.id)
-                        setValue("id", selectedExpense.id);
-                    if (selectedExpense.name)
-                        setValue("name", selectedExpense.name);
-                    if (selectedExpense.description)
-                        setValue("description", selectedExpense.description);
-                    if (selectedExpense.date)
-                        setValue("date", selectedExpense.date);
-                    if (selectedExpense.value)
-                        setValue("value", selectedExpense.value);
-
+                    setAction('Update');
                     setDisplayExpenseModal(true);
                 }}
                 onClickDeleteItem={() => {
@@ -122,7 +106,7 @@ function ExpensePage() {
     }
 
     function balanceBodyTemplate(rowData: ExpenseModel) {
-        if(rowData?.value) {
+        if (rowData?.value) {
             return Number(rowData.value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }
 
@@ -166,17 +150,12 @@ function ExpensePage() {
             </div>
 
             <ExpenseModal
-                expenseModalText={expenseModalText}
                 displayExpenseModal={displayExpenseModal}
                 setDisplayExpenseModal={setDisplayExpenseModal}
                 expense={expense}
-                setExpense={setExpense}
-                onClickSave={onSave}
-                control={control}
-                errors={errors}
-                handleSubmit={handleSubmit}
-                reset={reset}
-                setValue={setValue}
+                onSave={onSave}
+                action={action}
+                setAction={setAction}
             />
 
             <DeleteModal

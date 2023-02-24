@@ -33,7 +33,7 @@ export class ExpenseModel {
         this.props.description = description;
     }
 
-    get value() {
+    get value(): number {
         return this.props.value;
     }
 

@@ -17,6 +17,7 @@ export type CustomerModalProps = {
     displayCustomerModal: boolean
     setDisplayCustomerModal(display: boolean): void
     action: 'Insert' | 'Update'
+    setAction(action: 'Insert' | 'Update'): void
     customer: CustomerModel | null
 }
 
@@ -84,6 +85,7 @@ export function CustomerModal(props: CustomerModalProps) {
             style={{ width: '40vw' }}
             onHide={() => {
                 reset();
+                props.setAction('Insert');
                 props.setDisplayCustomerModal(false);
             }}>
             {textError ? <Message severity='error' text={textError} className='w-full mb-2' /> : <></>}

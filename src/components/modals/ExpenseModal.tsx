@@ -1,44 +1,37 @@
-import { Button } from "primereact/button";
-import { Dialog } from "primereact/dialog";
+import { Button } from 'primereact/button';
+import { Dialog } from 'primereact/dialog';
 import { Calendar } from 'primereact/calendar';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
-import { useContext, useState } from "react";
-import { addLocale, locale } from 'primereact/api';
-import { classNames } from 'primereact/utils';
-import { ExpenseModel } from "../../models/expenseModel";
-import {
-    Controller,
-    Control,
-    FieldErrorsImpl,
-    DeepRequired,
-    UseFormHandleSubmit,
-    UseFormReset,
-    UseFormSetValue
-} from 'react-hook-form';
-import { EXPENSE_ROUTE } from "../../server/configs";
-import { useAuth } from "../../contexts/authContext";
-import { fetchServer } from "../../server";
+import { Message } from 'primereact/message';
 
-type ExpenseModalProps = {
-    expenseModalText: string,
-    displayExpenseModal: boolean,
-    setDisplayExpenseModal: (display: boolean) => void,
-    expense: ExpenseModel,
-    setExpense: (expense: ExpenseModel) => void,
-    onClickSave: (expense: ExpenseModel) => void,
-    control: Control<ExpenseModel, object>,
-    errors: FieldErrorsImpl<DeepRequired<ExpenseModel>>,
-    handleSubmit: UseFormHandleSubmit<ExpenseModel>,
-    reset: UseFormReset<ExpenseModel>,
-    setValue: UseFormSetValue<ExpenseModel>
-};
+import { classNames } from 'primereact/utils';
+import { addLocale, locale } from 'primereact/api';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { useAuth } from '../../contexts/authContext';
+import { fetchServer } from '../../server';
+import { EXPENSE_ROUTE } from '../../server/configs';
+import { ExpenseModel } from '../../models/expenseModel';
+
+export type ExpenseModalProps = {
+    onSave(expense: ExpenseModel): void
+    displayExpenseModal: boolean
+    setDisplayExpenseModal(display: boolean): void
+    action: 'Insert' | 'Update'
+    setAction(action: 'Insert' | 'Update'): void
+    expense: ExpenseModel | null
+}
 
 export function ExpenseModal(props: ExpenseModalProps) {
     const { userSession } = useAuth();
-    const [formData, setFormData] = useState({});
-    const [value, setValue] = useState<number>(0);
-    const [date, setDate] = useState<any>(props.expense.date);
+    const [textError, setTextError] = useState<string>('');
+    const [modalText, setModalText] = useState<string>('');
+    const [method, setMethod] = useState<"POST" | "GET" | "DELETE" | "PUT">('POST');
+    const [url, setUrl] = useState<string>('');
+    const { handleSubmit, formState: { errors }, reset, control, setValue } = useForm<ExpenseModel>({
+        defaultValues: {}
+    });
 
     addLocale('pt', {
         firstDayOfWeek: 1,
@@ -53,134 +46,148 @@ export function ExpenseModal(props: ExpenseModalProps) {
 
     locale('pt');
 
-    function onSubmit(data: ExpenseModel) {
-        setFormData(data);
-        data.date = date;
-        data.value = value;
+    useEffect(() => {
+        if (props.action == 'Insert') {
+            setUrl(EXPENSE_ROUTE);
+            setMethod('POST');
+            setModalText('Adicionar despesa');
+            setValue('id', '');
+            setValue('name', '');
+            setValue('description', '');
+            setValue('date', new Date());
+            setValue('value', 0);
+        } else {
+            setMethod('PUT');
+            setUrl(`${EXPENSE_ROUTE}/${props.expense?.id}`);
+            setModalText('Alterar despesa');
+            setValue('id', props.expense?.id || '');
+            setValue('name', props.expense?.name || '');
+            setValue('description', props.expense?.description || '');
+            setValue('date', new Date(props.expense?.date || ''));
+            setValue('value', props.expense?.value || 0);
+        }
+    }, [props.action]);
 
-        let route: string = EXPENSE_ROUTE;
-        route += data.id ? `/${data.id}` : "";
-
+    async function onSubmit(expense: ExpenseModel) {
         fetchServer({
-            route: route,
-            method: "POST",
+            route: url,
+            method: method,
             user: userSession,
-            body: JSON.stringify({
-                id: data.id,
-                name: data.name,
-                description: data.description ?? "",
-                value: data.value,
-                date: data.date
-            })
-        }).then((response: ExpenseModel) => {
-            props.reset();
-            props.onClickSave(response);
-            props.setDisplayExpenseModal(false);
-            setDate(null);
-            setValue(0);
-        })
+            body: JSON.stringify(expense)
+        }).then(response => {
+            if (response.error) {
+                setTextError(response.error);
+            } else {
+                reset();
+                setTextError('');
+                props.onSave(response);
+                props.setDisplayExpenseModal(false);
+            }
+        });
     }
 
-    function getFormErrorMessage(propertyName: string) {
-        const property = props.errors[propertyName as keyof ExpenseModel];
+    function getFormErrorMessage(property: string) {
+        const error = errors[property as keyof ExpenseModel];
 
-        if (property) {
-            return (
-                <small className="p-error">
-                    {property.message}
-                </small>
-            );
+        if (error) {
+            return <small className='p-error'>{error?.message}</small>
         }
     }
 
     return (
         <Dialog
-            header={props.expenseModalText}
+            header={modalText}
             visible={props.displayExpenseModal}
-            modal
-            breakpoints={{ '960px': '75vw' }}
+            modal breakpoints={{ '960px': '75vw' }}
             style={{ width: '40vw' }}
-            onShow={() => {
-                props.setExpense(ExpenseModel.empty());
-                setDate(new Date(props.expense.date));
-                setValue(props.expense.value);
-            }}
             onHide={() => {
-                props.reset();
-                setDate(null);
-                setValue(0);
+                reset();
+                props.setAction('Insert');
                 props.setDisplayExpenseModal(false);
             }}>
-            <div className="pt-4">
-                <form onSubmit={props.handleSubmit(onSubmit)} className="formgrid grid p-fluid">
-                    <Controller name="id" control={props.control} render={({ field, fieldState }) => (
-                        <InputText
-                            id={field.name} {...field} autoFocus hidden
-                        />
-                    )} />
-                    <div className="field col-12 md:col-12">
-                        <label htmlFor="name" className={classNames({ 'p-error': props.errors.name })}>Nome*</label>
-                        <Controller name="name" control={props.control} rules={{ required: 'Nome da despesa é obrigatório.' }} render={({ field, fieldState }) => (
-                            <InputText
-                                id={field.name} {...field} autoFocus
-                                className={classNames({ 'p-invalid': fieldState.invalid })}
-                            />
-                        )} />
-                        {getFormErrorMessage('name')}
-                    </div>
-                    <div className="field col-12 md:col-12">
-                        <label htmlFor="description">Descição</label>
-                        <Controller name="description" control={props.control} render={({ field, fieldState }) => (
-                            <InputText
-                                id={field.name} {...field} autoFocus
-                            />
-                        )} />
-                    </div>
-                    <div className="field col-6 md:col-6">
-                        <label htmlFor="value" className={classNames({ 'p-error': props.errors.value })}>Valor</label>
-                        <Controller name="value" control={props.control} rules={{ required: 'Valor da despesa é obrigatório.' }} render={({ field, fieldState }) => (
-                            <InputNumber
-                                id={field.name}
-                                autoFocus
-                                value={value}
-                                className={classNames({ 'p-invalid': fieldState.invalid })}
-                                min={0}
-                                mode="currency" currency="BRL"
-                                onValueChange={(event) => {
-                                    var value = Number(event.value);
-                                    setValue(value);
-                                    props.setValue("value", value);
-                                }}
-                            />
-                        )} />
-                        {getFormErrorMessage('value')}
-                    </div>
-                    <div className="field col-6 md:col-6">
-                        <label htmlFor="date">Data</label>
-                        <Calendar
-                            id={"date"} showIcon dateFormat="dd/mm/yy"
-                            value={date} onChange={(e) => setDate(e.value)}
-                        />
-                    </div>
+            {textError ? <Message severity='error' text={textError} className='w-full mb-2' /> : <></>}
+            <form onSubmit={handleSubmit(onSubmit)} className="formgrid grid p-fluid">
+                <Controller name="id" control={control} render={({ field, fieldState }) => (
+                    <InputText id={field.name} {...field} autoFocus hidden />
+                )} />
+                <Controller
+                    name='name'
+                    control={control}
+                    rules={{ required: 'Nome é obrigatório.' }}
+                    render={({ field, fieldState }) => {
+                        return (
+                            <div className='field col-12 md:col-12'>
+                                <label htmlFor={field.name} className={classNames({ 'p-error': errors.name })}>Nome*</label>
+                                <InputText id={field.name} {...field} className={classNames({ 'p-invalid': fieldState.error })} />
+                                {getFormErrorMessage(field.name)}
+                            </div>
+                        );
+                    }}
+                />
+                <Controller
+                    name='description'
+                    control={control}
+                    render={({ field, fieldState }) => {
+                        return (
+                            <div className='field col-12 md:col-12'>
+                                <label htmlFor={field.name}>Descrição</label>
+                                <InputText id={field.name} {...field} />
+                                {getFormErrorMessage(field.name)}
+                            </div>
+                        );
+                    }}
+                />
+                <Controller
+                    name='value'
+                    control={control}
+                    rules={{ required: 'Valor é obrigatório.' }}
+                    render={({ field, fieldState }) => {
+                        return (
+                            <div className='field col-6 md:col-6'>
+                                <label htmlFor={field.name} className={classNames({ 'p-error': errors.name })}>Valor*</label>
+                                <InputNumber id={field.name} className={classNames({ 'p-invalid': fieldState.error })}
+                                    mode="currency" currency="BRL" value={field.value}
+                                    onValueChange={(event) => {
+                                        var value = Number(event.value);
+                                        setValue('value', value);
+                                    }} />
+                                {getFormErrorMessage(field.name)}
+                            </div>
+                        );
+                    }}
+                />
+                <Controller
+                    name='date'
+                    control={control}
+                    rules={{ required: 'Data é obrigatória.' }}
+                    render={({ field, fieldState }) => {
+                        return (
+                            <div className='field col-6 md:col-6'>
+                                <label htmlFor={field.name} className={classNames({ 'p-error': errors.name })}>Data*</label>
+                                <Calendar id={field.name} {...field} className={classNames({ 'p-invalid': fieldState.error })} showIcon dateFormat="dd/mm/yy" />
+                                {getFormErrorMessage(field.name)}
+                            </div>
+                        );
+                    }}
+                />
 
-                    <div className="field col-12 flex justify-content-end gap-3">
-                        <Button
-                            type="button"
-                            icon="pi pi-times"
-                            label="Cancelar"
-                            className="p-button-text"
-                            onClick={() => {
-                                props.reset();
-                                props.setDisplayExpenseModal(false);
-                            }} />
-                        <Button
-                            type="submit"
-                            icon="pi pi-check"
-                            label="Salvar"
-                        />
-                    </div>
-                </form>
-            </div>
+                <div className="field col-12 flex justify-content-end gap-3">
+                    <Button
+                        type="button"
+                        icon="pi pi-times"
+                        label="Cancelar"
+                        className="p-button-text"
+                        onClick={() => {
+                            reset();
+                            props.setDisplayExpenseModal(false);
+                        }} />
+                    <Button
+                        type="submit"
+                        icon="pi pi-check"
+                        label="Salvar"
+                    />
+                </div>
+            </form>
         </Dialog>
     );
 }

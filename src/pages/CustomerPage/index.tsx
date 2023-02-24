@@ -126,6 +126,7 @@ function CustomerPage() {
 
             <CustomerModal
                 action={action}
+                setAction={setAction}
                 customer={customer}
                 onSave={onSave}
                 displayCustomerModal={displayCustomerModal}
