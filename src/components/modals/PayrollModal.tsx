@@ -1,54 +1,41 @@
-import { useContext, useEffect, useState } from "react";
-import { classNames } from 'primereact/utils';
-import { addLocale, locale } from 'primereact/api';
-import { PayrollModel } from "../../models/payrollModel";
-import { EmployeeModel } from "../../models/employeeModel";
-
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
-import { Dialog } from "primereact/dialog";
-import { Button } from "primereact/button";
+import { Dialog } from 'primereact/dialog';
+import { Button } from 'primereact/button';
 import { Calendar } from 'primereact/calendar';
-import {
-    Controller,
-    Control,
-    FieldErrorsImpl,
-    DeepRequired,
-    UseFormHandleSubmit,
-    UseFormReset,
-    UseFormSetValue
-} from 'react-hook-form';
-import { PAYROLLS_ROUTE } from "../../server/configs";
-import { fetchServer } from "../../server";
-import { useAuth } from "../../contexts/authContext";
+import { Message } from 'primereact/message';
 
-type PayrollModalProps = {
-    payrollModalText: string,
-    displayPayrollModal: boolean,
-    setDisplayPayrollModal: (display: boolean) => void,
-    employees: EmployeeModel[],
-    payroll: PayrollModel,
-    setPayroll: (payroll: PayrollModel) => void,
-    onClickSave: (payroll: PayrollModel) => void,
-    control: Control<PayrollModel, object>,
-    errors: FieldErrorsImpl<DeepRequired<PayrollModel>>,
-    handleSubmit: UseFormHandleSubmit<PayrollModel>,
-    reset: UseFormReset<PayrollModel>,
-    setValue: UseFormSetValue<PayrollModel>
+import { classNames } from 'primereact/utils';
+import { addLocale, locale } from 'primereact/api';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { useAuth } from '../../contexts/authContext';
+import { PAYROLLS_ROUTE } from '../../server/configs';
+import { fetchServer } from '../../server';
+import { PayrollModel } from '../../models/payrollModel';
+import { EmployeeModel } from '../../models/employeeModel';
+
+export type PayrollModalProps = {
+    onSave(payroll: PayrollModel): void
+    displayPayrollModal: boolean
+    setDisplayPayrollModal(display: boolean): void
+    action: 'Insert' | 'Update'
+    setAction(action: 'Insert' | 'Update'): void
+    payroll: PayrollModel | null
+    employees: EmployeeModel[]
 }
 
 export function PayrollModal(props: PayrollModalProps) {
     const { userSession } = useAuth();
-    const [formData, setFormData] = useState({});
-    const [selectedEmployee, setSelectedEmployee] = useState<any>("");
+    const [textError, setTextError] = useState<string>('');
+    const [modalText, setModalText] = useState<string>('');
     const [employeeOptions, setEmployeeOptions] = useState<any[]>([]);
-    const [salary, setSalary] = useState<number>(0);
-    const [overtime, setOvertime] = useState<number>(0);
-    const [attendanceAward, setAttendanceAward] = useState<number>(0);
-    const [productionAward, setProductionAward] = useState<number>(0);
-    const [salaryToBePaid, setSalaryToBePaid] = useState<any>(0);
-    const [date, setDate] = useState<any>(props.payroll.date);
+    const [method, setMethod] = useState<"POST" | "GET" | "DELETE" | "PUT">('POST');
+    const [url, setUrl] = useState<string>('');
+    const { handleSubmit, formState: { errors }, reset, control, setValue, getValues } = useForm<PayrollModel>({
+        defaultValues: {}
+    });
 
     addLocale('pt', {
         firstDayOfWeek: 1,
@@ -63,265 +50,227 @@ export function PayrollModal(props: PayrollModalProps) {
 
     locale('pt');
 
-    function onSubmit(data: PayrollModel) {
-        setFormData(data);
-
-        data.date = date;
-        data.overtime = overtime;
-        data.attendanceAward = attendanceAward;
-        data.productionAward = productionAward;
-        data.salary = salary;
-
-        let route: string = PAYROLLS_ROUTE;
-        route += data.id ? `/${data.id}` : "";
-
-        fetchServer({
-            route: route,
-            method: "POST",
-            user: userSession,
-            body: JSON.stringify({
-                id: data.id,
-                idEmployee: data.idEmployee,
-                employee: data.employee,
-                attendanceAward: data.attendanceAward,
-                productionAward: data.productionAward,
-                overtime: data.overtime,
-                salary: data.salary,
-                salaryToBePaid: data.salaryToBePaid,
-                date: data.date
-            })
-        }).then((response: PayrollModel) => {
-            const employee = props.employees.find(item => item.id == selectedEmployee);
-            const payroll = PayrollModel.clone(response);
-
-            if (employee) {
-                payroll.employee = employee;
+    useEffect(() => {
+        setEmployeeOptions(props.employees.map(employee => {
+            return {
+                label: employee.name,
+                value: employee.id
             }
+        }));
 
-            props.setDisplayPayrollModal(false);
-            props.onClickSave(payroll);
-            props.reset(PayrollModel.empty());
-            setSelectedEmployee(0);
-            setAttendanceAward(0);
-            setProductionAward(0);
-            setOvertime(0);
-            setSalary(0);
-            setSalaryToBePaid(0);
-            setDate(null);
+        if (props.action == 'Insert') {
+            setUrl(PAYROLLS_ROUTE);
+            setMethod('POST');
+            setModalText('Adicionar folha de pagamento');
+            setValue('id', '');
+            setValue('employee', null);
+            setValue('idEmployee', '');
+            setValue('attendanceAward', 0);
+            setValue('productionAward', 0);
+            setValue('overtime', 0);
+            setValue('date', new Date());
+            setValue('salary', 0);
+            setValue('salaryToBePaid', 0);
+        } else {
+            setMethod('PUT');
+            setUrl(`${PAYROLLS_ROUTE}/${props.payroll?.id}`);
+            setModalText('Alterar folha de pagamento');
+            setValue('id', props.payroll?.id || '');
+            setValue('employee', props.payroll?.employee || null);
+            setValue('idEmployee', props.payroll?.idEmployee || '');
+            setValue('attendanceAward', Number(props.payroll?.attendanceAward) || 0);
+            setValue('productionAward', Number(props.payroll?.productionAward) || 0);
+            setValue('overtime', Number(props.payroll?.overtime) || 0);
+            setValue('date', new Date(props.payroll?.date || ''));
+            setValue('salary', Number(props.payroll?.salary) || 0);
+            setValue('salaryToBePaid', Number(props.payroll?.salaryToBePaid) || 0);
+        }
+    }, [props.displayPayrollModal]);
+
+    async function onSubmit(payroll: PayrollModel) {
+        fetchServer({
+            route: url,
+            method: method,
+            user: userSession,
+            body: JSON.stringify(payroll)
+        }).then(response => {
+            if (response.error) {
+                setTextError(response.error);
+            } else {
+                reset();
+                setTextError('');
+                props.onSave(response);
+                props.setDisplayPayrollModal(false);
+            }
         });
     }
 
-    function getFormErrorMessage(propertyName: string) {
-        const property = props.errors[propertyName as keyof PayrollModel];
+    function getFormErrorMessage(property: string) {
+        const error = errors[property as keyof PayrollModel];
 
-        if (property) {
-            return (
-                <small className="p-error">
-                    {property.message}
-                </small>
-            );
+        if (error) {
+            return <small className='p-error'>{error?.message}</small>
         }
     }
 
     return (
         <Dialog
-            header={props.payrollModalText}
+            header={modalText}
             visible={props.displayPayrollModal}
-            onShow={() => {
-                setDate(new Date(props.payroll.date));
-                setSelectedEmployee(props.payroll.idEmployee);
-                setAttendanceAward(props.payroll.attendanceAward);
-                props.setValue("attendanceAward", props.payroll.attendanceAward);
-                setProductionAward(props.payroll.productionAward);
-                props.setValue("productionAward", props.payroll.productionAward);
-                setOvertime(props.payroll.overtime);
-                props.setValue("overtime", props.payroll.overtime);
-                setSalary(props.payroll.salary);
-                props.setValue("salary", props.payroll.salary);
-                setSalaryToBePaid(
-                    Number(props.payroll.salary) + 
-                    Number(props.payroll.attendanceAward) + 
-                    Number(props.payroll.productionAward));
-                
-                setEmployeeOptions(props.employees.map(employee => {
-                    return {
-                        label: employee.name,
-                        value: employee.id
-                    }
-                }));
-            }}
-            modal
-            breakpoints={{ '960px': '75vw' }}
+            modal breakpoints={{ '960px': '75vw' }}
             style={{ width: '40vw' }}
             onHide={() => {
-                props.reset(PayrollModel.empty());
-                setSelectedEmployee(0);
-                setAttendanceAward(0);
-                setProductionAward(0);
-                setOvertime(0);
-                setSalary(0);
-                setSalaryToBePaid(0);
-                setDate(null);
+                reset();
+                props.setAction('Insert');
                 props.setDisplayPayrollModal(false);
             }}>
-            <div className="pt-4">
-                <form onSubmit={props.handleSubmit(onSubmit)} className="formgrid grid p-fluid">
-                    <Controller name="id" control={props.control} render={({ field, fieldState }) => (
-                        <InputText
-                            id={field.name} {...field} autoFocus hidden
-                        />
-                    )} />
-                    <div className="field col-12 md:col-12 mb-4">
-                        <label htmlFor="employeeUid" className={classNames({ 'p-error': props.errors.idEmployee })}>Funcionário*</label>
-                        <Controller name="idEmployee" control={props.control} rules={{ required: 'Funcionário é obrigatório.' }} render={({ field, fieldState }) => (
-                            <Dropdown
-                                id={field.name}
-                                {...field}
-                                onChange={(event) => {
-                                    setSelectedEmployee(event.value);
-                                    props.setValue("idEmployee", event.value);
-                                }}
-                                value={selectedEmployee}
-                                autoFocus
-                                options={employeeOptions}
-                                placeholder="Selecione o funcionário"
-                            />
-                        )} />
-                        {getFormErrorMessage('employeeUid')}
-                    </div>
-                    <div className="field col-4 md:col-4">
-                        <label htmlFor="salary" className={classNames({ 'p-error': props.errors.salary })}>Salário*</label>
-                        <Controller name="salary" control={props.control} rules={{ required: 'Salário é obrigatório.' }} render={({ field, fieldState }) => (
-                            <InputNumber
-                                id={field.name}
-                                autoFocus
-                                value={salary}
-                                className={classNames({ 'p-invalid': fieldState.invalid })}
-                                min={0}
-                                mode="currency" currency="BRL"
-                                onValueChange={(event) => {
-                                    const value = Number(event.value);
-                                    setSalary(value);
-                                    props.setValue("salary", value);
-                                    setSalaryToBePaid(Number(value) + Number(attendanceAward) + Number(productionAward));
-                                }}
-                            />
-                        )} />
-                        {getFormErrorMessage('salary')}
-                    </div>
-
-                    <div className="field col-3 md:col-3">
-                        <label htmlFor="overtime" className={classNames({ 'p-error': props.errors.overtime })}>Horas extras*</label>
-                        <Controller name="overtime" control={props.control} rules={{ required: 'Horas extras é obrigatório.' }} render={({ field, fieldState }) => (
-                            <InputNumber
-                                id={field.name}
-                                autoFocus
-                                value={overtime}
-                                className={classNames({ 'p-invalid': fieldState.invalid })}
-                                mode="decimal"
-                                showButtons
-                                min={0}
-                                onValueChange={(event) => {
-                                    const value = Number(event.value);
-                                    setOvertime(value);
-                                    props.setValue("overtime", value);
-                                }}
-                            />
-                        )} />
-                        {getFormErrorMessage('overtime')}
-                    </div>
-
-                    <div className="field col-5 md:col-5">
-                        <label htmlFor="date">Data do pagamento</label>
-                        <Calendar
-                            id={"date"} showIcon dateFormat="dd/mm/yy"
-                            value={date} onChange={(e) => {
-                                setDate(e.value);
-                            }}
-                        />
-                    </div>
-
-                    <div className="field col-4 md:col-4">
-                        <label htmlFor="attendanceAward" className={classNames({ 'p-error': props.errors.attendanceAward })}>Prêmio por salubridade*</label>
-                        <Controller name="attendanceAward" control={props.control} rules={{ required: 'Prêmio por salubridade é obrigatório.' }} render={({ field, fieldState }) => (
-                            <InputNumber
-                                id={field.name}
-                                autoFocus
-                                value={attendanceAward}
-                                className={classNames({ 'p-invalid': fieldState.invalid })}
-                                min={0}
-                                mode="currency" currency="BRL"
-                                onValueChange={(event) => {
-                                    const value = Number(event.value);
-                                    
-                                    setAttendanceAward(value);
-                                    setSalaryToBePaid(Number(salary) + Number(value) + Number(productionAward));
-                                    props.setValue("attendanceAward", value);
-                                }}
-                            />
-                        )} />
-                        {getFormErrorMessage('attendanceAward')}
-                    </div>
-
-                    <div className="field col-4 md:col-4">
-                        <label htmlFor="productionAward" className={classNames({ 'p-error': props.errors.productionAward })}>Prêmio por produção*</label>
-                        <Controller name="productionAward" control={props.control} rules={{ required: 'Prêmio por produção é obrigatório.' }} render={({ field, fieldState }) => (
-                            <InputNumber
-                                id={field.name}
-                                autoFocus
-                                value={productionAward}
-                                className={classNames({ 'p-invalid': fieldState.invalid })}
-                                min={0}
-                                mode="currency" currency="BRL"
-                                onValueChange={(event) => {
-                                    const value = Number(event.value);
-                                    setProductionAward(value);
-                                    setSalaryToBePaid(Number(salary) + Number(attendanceAward) + Number(value));
-                                    props.setValue("productionAward", value);
-                                }}
-                            />
-                        )} />
-                        {getFormErrorMessage('productionAward')}
-                    </div>
-
-                    <div className="field col-4 md:col-4">
-                        <label htmlFor="salaryToBePaid" className={classNames({ 'p-error': props.errors.salaryToBePaid })}>Salário a ser pago</label>
-                        <InputNumber
-                            id={"salaryToBePaid"}
-                            min={0}
-                            value={salaryToBePaid}
-                            disabled
-                            readOnly
-                            mode="currency"
-                            currency="BRL"
-                        />
-                    </div>
-
-                    <div className="field col-12 flex justify-content-end gap-3">
-                        <Button
-                            type="button"
-                            icon="pi pi-times"
-                            label="Cancelar"
-                            className="p-button-text"
-                            onClick={() => {
-                                props.reset();
-                                setSelectedEmployee(0);
-                                setAttendanceAward(0);
-                                setProductionAward(0);
-                                setOvertime(0);
-                                setSalary(0);
-                                setSalaryToBePaid(0);
-                                setDate(null);
-                                props.setDisplayPayrollModal(false);
-                            }} />
-                        <Button
-                            type="submit"
-                            icon="pi pi-check"
-                            label="Salvar"
-                        />
-                    </div>
-                </form>
-            </div>
+            {textError ? <Message severity='error' text={textError} className='w-full mb-2' /> : <></>}
+            <form onSubmit={handleSubmit(onSubmit)} className="formgrid grid p-fluid">
+                <Controller name="id" control={control} render={({ field, fieldState }) => (
+                    <InputText id={field.name} {...field} autoFocus hidden />
+                )} />
+                <Controller
+                    name='idEmployee'
+                    control={control}
+                    rules={{ required: 'Funcionário é obrigatório.' }}
+                    render={({ field, fieldState }) => {
+                        return (
+                            <div className='field col-12 md:col-12'>
+                                <label htmlFor={field.name} className={classNames({ 'p-error': errors.idEmployee })}>Funcionário*</label>
+                                <Dropdown id={field.name} {...field} className={classNames({ 'p-invalid': fieldState.error })}
+                                    options={employeeOptions}
+                                    filter
+                                    emptyMessage="Nenhum funcionário encontrado"
+                                    emptyFilterMessage="Nenhum funcionário encontrado"
+                                    placeholder="Selecione o funcionário"
+                                    onChange={(event) => {
+                                        setValue("idEmployee", event.value);
+                                    }} />
+                                {getFormErrorMessage(field.name)}
+                            </div>
+                        );
+                    }}
+                />
+                <Controller
+                    name='salary'
+                    control={control}
+                    rules={{ required: 'Salário é obrigatório.' }}
+                    render={({ field, fieldState }) => {
+                        return (
+                            <div className='field col-4 md:col-4'>
+                                <label htmlFor={field.name} className={classNames({ 'p-error': errors.salary })}>Salário*</label>
+                                <InputNumber id={field.name} className={classNames({ 'p-invalid': fieldState.error })}
+                                    mode="currency" currency="BRL" value={field.value}
+                                    onValueChange={(event) => {
+                                        const value = Number(event.value);
+                                        setValue('salary', value);
+                                        setValue('salaryToBePaid', Number(value) + Number(getValues('attendanceAward')) + Number(getValues('productionAward')));
+                                    }} />
+                                {getFormErrorMessage(field.name)}
+                            </div>
+                        );
+                    }}
+                />
+                <Controller
+                    name='overtime'
+                    control={control}
+                    render={({ field, fieldState }) => {
+                        return (
+                            <div className='field col-3 md:col-3'>
+                                <label htmlFor={field.name}>Horas extras</label>
+                                <InputNumber id={field.name} mode="decimal" showButtons min={0} value={field.value}
+                                    onValueChange={(event) => {
+                                        const value = Number(event.value);
+                                        setValue('overtime', value);
+                                    }} />
+                            </div>
+                        );
+                    }}
+                />
+                <Controller
+                    name='date'
+                    control={control}
+                    rules={{ required: 'Data é obrigatória.' }}
+                    render={({ field, fieldState }) => {
+                        return (
+                            <div className='field col-5 md:col-5'>
+                                <label htmlFor={field.name} className={classNames({ 'p-error': errors.date })}>Data de pagamento*</label>
+                                <Calendar id={field.name} {...field} className={classNames({ 'p-invalid': fieldState.error })}
+                                    showIcon dateFormat="dd/mm/yy" />
+                                {getFormErrorMessage(field.name)}
+                            </div>
+                        );
+                    }}
+                />
+                <Controller
+                    name='attendanceAward'
+                    control={control}
+                    rules={{ required: 'Prêmio por salubridade é obrigatório.' }}
+                    render={({ field, fieldState }) => {
+                        return (
+                            <div className='field col-4 md:col-4'>
+                                <label htmlFor={field.name} className={classNames({ 'p-error': errors.attendanceAward })}>Prêmio por salubridade*</label>
+                                <InputNumber id={field.name} className={classNames({ 'p-invalid': fieldState.error })}
+                                    mode="currency" currency="BRL" value={field.value}
+                                    onValueChange={(event) => {
+                                        const value = Number(event.value);
+                                        setValue('attendanceAward', value);
+                                        setValue('salaryToBePaid', Number(getValues('salary')) + Number(value) + Number(getValues('productionAward')));
+                                    }} />
+                                {getFormErrorMessage(field.name)}
+                            </div>
+                        );
+                    }}
+                />
+                <Controller
+                    name='productionAward'
+                    control={control}
+                    rules={{ required: 'Prêmio por produção é obrigatório.' }}
+                    render={({ field, fieldState }) => {
+                        return (
+                            <div className='field col-4 md:col-4'>
+                                <label htmlFor={field.name} className={classNames({ 'p-error': errors.productionAward })}>Prêmio por produção*</label>
+                                <InputNumber id={field.name} className={classNames({ 'p-invalid': fieldState.error })}
+                                    mode="currency" currency="BRL" value={field.value}
+                                    onValueChange={(event) => {
+                                        const value = Number(event.value);
+                                        setValue('productionAward', value);
+                                        setValue('salaryToBePaid', Number(getValues('salary')) + Number(getValues('attendanceAward')) + Number(value));
+                                    }} />
+                                {getFormErrorMessage(field.name)}
+                            </div>
+                        );
+                    }}
+                />
+                <Controller
+                    name='salaryToBePaid'
+                    control={control}
+                    render={({ field, fieldState }) => {
+                        return (
+                            <div className='field col-4 md:col-4'>
+                                <label htmlFor={field.name} >Salário a ser pago</label>
+                                <InputNumber id={field.name} mode="currency" currency="BRL" disabled readOnly value={field.value} />
+                            </div>
+                        );
+                    }}
+                />
+                <div className="field col-12 flex justify-content-end gap-3">
+                    <Button
+                        type="button"
+                        icon="pi pi-times"
+                        label="Cancelar"
+                        className="p-button-text"
+                        onClick={() => {
+                            reset();
+                            props.setDisplayPayrollModal(false);
+                        }} />
+                    <Button
+                        type="submit"
+                        icon="pi pi-check"
+                        label="Salvar"
+                    />
+                </div>
+            </form>
         </Dialog>
-    );
+    )
 }

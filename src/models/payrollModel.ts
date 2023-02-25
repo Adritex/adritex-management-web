@@ -3,7 +3,7 @@ import { EmployeeModel } from "./employeeModel";
 interface PayrollModelProps {
     id: string;
     idEmployee: string;
-    employee: EmployeeModel;
+    employee: EmployeeModel | null;
     salary: number;
     attendanceAward: number;
     productionAward: number;
@@ -29,34 +29,46 @@ export class PayrollModel {
     }
 
     get employee() { return this.props.employee; }
-    set employee(employee: EmployeeModel) {
+    set employee(employee: EmployeeModel | null) {
         this.props.employee = employee;
     }
 
-    get salary() { return this.props.salary; }
+    get salary(): number {
+        return this.props.salary;
+    }
+
     set salary(salary: number) {
         this.props.salary = salary;
         this.calculateSalaryToBePaid();
     }
 
-    get attendanceAward() { return this.props.attendanceAward; }
+    get attendanceAward(): number {
+        return this.props.attendanceAward;
+    }
+
     set attendanceAward(attendanceAward: number) {
         this.props.attendanceAward = attendanceAward;
         this.calculateSalaryToBePaid();
     }
 
-    get productionAward() { return this.props.productionAward; }
+    get productionAward(): number {
+        return this.props.productionAward;
+    }
+
     set productionAward(productionAward: number) {
         this.props.productionAward = productionAward;
         this.calculateSalaryToBePaid();
     }
 
-    get overtime() { return this.props.overtime; }
+    get overtime(): number {
+        return this.props.overtime;
+    }
+
     set overtime(overtime: number) {
         this.props.overtime = overtime;
     }
 
-    get salaryToBePaid() { return this.props.salaryToBePaid; }
+    get salaryToBePaid(): number { return this.props.salaryToBePaid; }
 
     get date() { return this.props.date; }
     set date(date: Date) {

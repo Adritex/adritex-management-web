@@ -11,23 +11,19 @@ import { DataTableHeader } from "../../components/DataTableHeader";
 import { PayrollModal } from "../../components/modals/PayrollModal";
 import { DeleteModal } from "../../components/modals/DeleteModal";
 import { EMPLOYEE_ROUTE, PAYROLLS_ROUTE } from '../../server/configs';
-import { useContext } from 'react';
 import { fetchServer } from '../../server';
 import { useAuth } from '../../contexts/authContext';
 
 function PaymentPage() {
     const toast = useRef<any>(null);
     const { userSession } = useAuth();
-    const [payrollModalText, setPayrollModalText] = useState<string>("");
     const [displayDeleteModal, setDisplayDeleteModal] = useState<boolean>(false);
     const [displayPayrollModal, setDisplayPayrollModal] = useState<boolean>(false);
-    const { control, formState: { errors }, handleSubmit, reset, setValue } = useForm({
-        defaultValues: PayrollModel.empty()
-    });
+    const [action, setAction] = useState<'Insert' | 'Update'>('Insert');
 
     const [employees, setEmployees] = useState<EmployeeModel[]>([]);
-    const [payroll, setPayroll] = useState<PayrollModel>(PayrollModel.empty());
     const [payrolls, setPayrolls] = useState<PayrollModel[]>([]);
+    const [payroll, setPayroll] = useState<PayrollModel | null>(null);
     const [selectedPayrolls, setSelectedPayrolls] = useState<PayrollModel[]>([]);
     const [filters, setFilters] = useState({ "global": { value: null, matchMode: FilterMatchMode.CONTAINS } })
     const [globalFilterValue, setGlobalFilterValue] = useState("");
@@ -66,35 +62,15 @@ function PaymentPage() {
                 onClickExportPDF={() => { }}
                 onClickExportXLS={() => { }}
                 onClickNewItem={() => {
-                    setPayrollModalText("Adicionar folha de pagamento");
-                    setPayroll(PayrollModel.empty());
+                    setPayroll(null);
+                    setAction('Insert');
                     setDisplayPayrollModal(true);
                 }}
                 onClickUpdateItem={() => {
-                    setPayrollModalText("Alterar folha de pagamento");
-
                     var selectedPayroll = PayrollModel.clone(selectedPayrolls[0]);
+                    selectedPayroll.employee = employees.find(item => item.id == selectedPayroll.idEmployee) || null;
                     setPayroll(selectedPayroll);
-
-                    if (selectedPayroll.id)
-                        setValue("id", selectedPayroll.id);
-                    if (selectedPayroll.employee)
-                        setValue("employee", selectedPayroll.employee);
-                    if (selectedPayroll.idEmployee)
-                        setValue("idEmployee", selectedPayroll.idEmployee);
-                    if (selectedPayroll.attendanceAward)
-                        setValue("attendanceAward", selectedPayroll.attendanceAward);
-                    if (selectedPayroll.productionAward)
-                        setValue("productionAward", selectedPayroll.productionAward);
-                    if (selectedPayroll.overtime)
-                        setValue("overtime", selectedPayroll.overtime);
-                    if (selectedPayroll.date)
-                        setValue("date", selectedPayroll.date);
-                    if (selectedPayroll.salary)
-                        setValue("salary", selectedPayroll.salary);
-                    if (selectedPayroll.salaryToBePaid)
-                        setValue("salaryToBePaid", selectedPayroll.salaryToBePaid);
-
+                    setAction('Update');
                     setDisplayPayrollModal(true);
                 }}
                 onClickDeleteItem={() => {
@@ -155,7 +131,6 @@ function PaymentPage() {
     }
 
     function balanceBodyTemplate(rowData: PayrollModel) {
-        console.log(rowData)
         if(rowData?.salaryToBePaid) {
             return Number(rowData.salaryToBePaid).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }
@@ -199,18 +174,13 @@ function PaymentPage() {
             </div>
 
             <PayrollModal
-                payrollModalText={payrollModalText}
                 displayPayrollModal={displayPayrollModal}
                 setDisplayPayrollModal={setDisplayPayrollModal}
                 payroll={payroll}
-                setPayroll={setPayroll}
                 employees={employees}
-                onClickSave={onSave}
-                control={control}
-                errors={errors}
-                handleSubmit={handleSubmit}
-                reset={reset}
-                setValue={setValue}
+                onSave={onSave}
+                action={action}
+                setAction={setAction}
             />
 
             <DeleteModal
