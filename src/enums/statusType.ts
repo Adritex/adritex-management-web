@@ -1,7 +1,6 @@
 export enum StatusType {
-    None = 0,
-    Pending = 1,
-    Progress = 2,
-    Finished = 3,
-    Canceled =  4,
+    Pending = 0,
+    Progress = 1,
+    Finished = 2,
+    Canceled =  3,
 }

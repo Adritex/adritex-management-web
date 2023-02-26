@@ -151,7 +151,7 @@ function ProductPage() {
     }
 
     function statusBodyTemplate(rowData: ProductModel) {
-        if (rowData.status == StatusType.None || rowData.status == StatusType.Pending) {
+        if (rowData.status == StatusType.Pending) {
             return <span className={`customer-badge status-proposal`}>Pendente</span>
         } else if (rowData.status == StatusType.Progress) {
             return <span className={`customer-badge status-new`}>Em andamento</span>

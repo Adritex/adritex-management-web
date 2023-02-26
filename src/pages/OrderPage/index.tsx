@@ -36,36 +36,20 @@ function OrderPage() {
         });
 
         fetchServer({
-            route: PRODUCT_ORDERS_ROUTE,
-            method: "GET",
-            user: userSession,
-        }).then((products: any[]) => {
-            fetchServer({
-                route: ORDERS_ROUTE,
-                method: "GET",
-                user: userSession,
-            }).then((productOrders: any[]) => {
-                const targetProducts: ProductModel[] = [];
-                const targetProductOrders: ProductOrderModel[] = [];
+            route: `${PRODUCT_ORDERS_ROUTE}/0`,
+            method: 'GET',
+            user: userSession
+        }).then((products: ProductModel[]) => {
+            setSource(products);
+        });
 
-                productOrders.forEach((productOrderItem: any) => {
-                    const productOrder = ProductOrderModel.clone(productOrderItem);
-                    const product = products.find(item => item.id == productOrder.idProduct);
-
-                    if (product) {
-                        productOrder.product = product;
-                        targetProducts.push(product);
-                    }
-
-                    products = products.filter(item => item.id != productOrder.idProduct);
-
-                    targetProductOrders.push(productOrder);
-                });
-
-                setSource(products);
-                setTarget(targetProducts);
-                setProductOrders(targetProductOrders);
-            });
+        fetchServer({
+            route: ORDERS_ROUTE,
+            method: 'GET',
+            user: userSession
+        }).then((productOrders: ProductOrderModel[]) => {
+            setProductOrders(productOrders);
+            setTarget(productOrders.map(item => item.product));
         });
     }, []);
 
@@ -82,16 +66,14 @@ function OrderPage() {
 
         setProductOrders(event.target.map((product: ProductModel, index: number) => {
             product.status = StatusType.Progress;
+            const savedProductOrder = productOrders.find(item => item.idProduct == product.id);
             const productOrder = new ProductOrderModel({
                 id: "",
-                priority: PriorityType.Low,
+                priority: savedProductOrder?.priority || PriorityType.Low,
                 order: index,
                 idProduct: product.id,
-                product: ProductModel.empty(),
+                product: product,
             });
-
-            productOrder.product = product;
-
             return productOrder;
         }));
     }
@@ -184,11 +166,9 @@ function OrderPage() {
             return PriorityType.Low;
         } else if (item == "M") {
             return PriorityType.Medium;
-        } else if (item == "A") {
+        } else {
             return PriorityType.High;
         }
-
-        return PriorityType.None;
     }
 
     const justifyTemplate = (option: string) => {
@@ -200,7 +180,7 @@ function OrderPage() {
     }
 
     const getStatus = (item: any) => {
-        if (item.status == StatusType.None || item.status == StatusType.Pending) {
+        if (item.status == StatusType.Pending) {
             return <span className={`customer-badge status-proposal`}>Pendente</span>
         } else if (item.status == StatusType.Progress) {
             return <span className={`customer-badge status-new`}>Em andamento</span>
@@ -210,20 +190,22 @@ function OrderPage() {
     function onConfirmFinishedOrder(date: string) {
         fetchServer({
             route: `${ORDERS_ROUTE}/${selectedProductOrder.id}/finish`,
-            method: "POST",
+            method: "PUT",
             user: userSession,
             body: JSON.stringify({ date: date })
         }).then((response) => {
-            const productOrder: ProductOrderModel = response;
-            const filteredTarget = target.filter(item => item.id != productOrder.idProduct);
-            setTarget(filteredTarget);
+            console.log(response);
+            if (response?.success) {
+                const savedOrder = productOrders.find(item => item.id == response.productOrder);
+                setTarget(target.filter(item => item.id != savedOrder?.idProduct));
 
-            toast.current.show({
-                severity: 'success',
-                summary: 'Sucesso!',
-                detail: 'Ordem de produção finalizada com sucesso!',
-                life: 3000
-            });
+                toast.current.show({
+                    severity: 'success',
+                    summary: 'Sucesso!',
+                    detail: 'Ordem de produção finalizada com sucesso!',
+                    life: 3000
+                });
+            }
         });
     }
 
@@ -242,7 +224,15 @@ function OrderPage() {
                                     route: ORDERS_ROUTE,
                                     method: "POST",
                                     user: userSession,
-                                    body: JSON.stringify({ orders: productOrders })
+                                    body: JSON.stringify({
+                                        productOrders: productOrders.map(product => {
+                                            return {
+                                                order: product.order,
+                                                priority: product.priority,
+                                                idProduct: product.idProduct
+                                            }
+                                        })
+                                    })
                                 }).then(() => {
                                     toast.current.show({
                                         severity: 'success',
@@ -250,10 +240,11 @@ function OrderPage() {
                                         detail: 'Ordem de produção alterada!',
                                         life: 3000
                                     });
-                                })
+                                });
                             }}
                         />
                     </div>
+
                     <PickList
                         source={source} target={target}
                         sourceItemTemplate={sourceItemTemplate} targetItemTemplate={targetItemTemplate}
