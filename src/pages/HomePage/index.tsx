@@ -49,48 +49,35 @@ function HomePage() {
             setCustomers(customers);
 
             fetchServer({
-                route: PRODUCT_ORDERS_ROUTE,
+                route: ORDERS_ROUTE,
                 method: "GET",
                 user: userSession
-            }).then((products: ProductModel[]) => {
-                fetchServer({
-                    route: ORDERS_ROUTE,
-                    method: "GET",
-                    user: userSession
-                }).then((productOrders: ProductOrderModel[]) => {
-                    const low: ProductOrderModel[] = [];
-                    const medium: ProductOrderModel[] = [];
-                    const high: ProductOrderModel[] = [];
+            }).then((productOrders: ProductOrderModel[]) => {
+                const low: ProductOrderModel[] = [];
+                const medium: ProductOrderModel[] = [];
+                const high: ProductOrderModel[] = [];
 
-                    productOrders
-                        .sort((a, b) => a.order > b.order ? 1 : -1)
-                        .forEach(productOrderItem => {
-                            const productOrder = ProductOrderModel.clone(productOrderItem);
-                            const product = products.find(item => item.id == productOrderItem.idProduct);
+                productOrders
+                    .sort((a, b) => a.order > b.order ? 1 : -1)
+                    .forEach((productOrderItem: ProductOrderModel) => {
+                        const customer = customers.find(item => item.id == productOrderItem.product.idCustomer);
 
-                            if (product) {
-                                productOrder.product = product;
+                        if (customer) {
+                            productOrderItem.product.customer = customer;
+                        }
 
-                                const customer = customers.find(item => item.id == product.idCustomer);
+                        if (productOrderItem.priority == PriorityType.Low) {
+                            low.push(productOrderItem);
+                        } else if (productOrderItem.priority == PriorityType.Medium) {
+                            medium.push(productOrderItem);
+                        } else {
+                            high.push(productOrderItem);
+                        }
+                    });
 
-                                if (customer) {
-                                    productOrder.product.customer = customer;
-                                }
-                            }
-
-                            if (productOrder.priority == PriorityType.Low) {
-                                low.push(productOrder);
-                            } else if (productOrder.priority == PriorityType.Medium) {
-                                medium.push(productOrder);
-                            } else {
-                                high.push(productOrder);
-                            }
-                        });
-
-                    setLowOrder(low);
-                    setMediumOrder(medium);
-                    setHighOrder(high);
-                });
+                setLowOrder(low);
+                setMediumOrder(medium);
+                setHighOrder(high);
             });
         });
     }
@@ -125,7 +112,7 @@ function HomePage() {
     }
 
     function statusBodyTemplate(rowData: ProductModel) {
-        if (rowData.status == StatusType.None || rowData.status == StatusType.Pending) {
+        if (rowData.status == StatusType.Pending) {
             return <span className={`customer-badge status-proposal text-center`}>Pendente</span>
         } else if (rowData.status == StatusType.Progress) {
             return <span className={`customer-badge status-new text-center`}>Em andamento</span>
@@ -220,7 +207,7 @@ function HomePage() {
                 onClickSaveGoal={(goal) => {
                     fetchServer({
                         route: GOAL_ROUTE,
-                        method: "POST",
+                        method: "PUT",
                         user: userSession,
                         body: JSON.stringify({
                             currentQuantity: goal.currentQuantity,
