@@ -24,24 +24,15 @@ function ProductPage() {
     const [productModalText, setProductModalText] = useState<string>("");
     const [displayDeleteModal, setDisplayDeleteModal] = useState<boolean>(false);
     const [displayProductModal, setDisplayProductModal] = useState<boolean>(false);
-    const { control, formState: { errors }, handleSubmit, reset, setValue } = useForm({
-        defaultValues: ProductModel.empty()
-    });
+    const [action, setAction] = useState<'Insert' | 'Update'>('Insert');
 
     const [customers, setCustomers] = useState<CustomerModel[]>([]);
     const [products, setProducts] = useState<ProductModel[]>([]);
-    const [product, setProduct] = useState<ProductModel>(ProductModel.empty());
+    const [product, setProduct] = useState<ProductModel | null>(null);
     const [selectedProducts, setSelectedProducts] = useState<ProductModel[]>([]);
     const [filters, setFilters] = useState({ "global": { value: null, matchMode: FilterMatchMode.CONTAINS } })
     const [globalFilterValue, setGlobalFilterValue] = useState("");
     const [loading, setLoading] = useState(true);
-
-    const cols = [
-        { field: 'code', header: 'Code' },
-        { field: 'name', header: 'Name' },
-        { field: 'category', header: 'Category' },
-        { field: 'quantity', header: 'Quantity' }
-    ];
 
     useEffect(() => {
         fetchServer({
@@ -93,37 +84,15 @@ function ProductPage() {
                 }}
                 onClickExportXLS={() => { }}
                 onClickNewItem={() => {
-                    setProductModalText("Adicionar produto");
-                    setProduct(ProductModel.empty());
+                    setProduct(null);
+                    setAction('Insert');
                     setDisplayProductModal(true);
                 }}
                 onClickUpdateItem={() => {
-                    setProductModalText("Alterar produto");
-
                     var selectedProduct = ProductModel.clone(selectedProducts[0]);
+                    selectedProduct.customer = customers.find(item => item.id == selectedProduct.idCustomer) || null;
                     setProduct(selectedProduct);
-
-                    if (selectedProduct.id)
-                        setValue("id", selectedProduct.id);
-                    if (selectedProduct.customer)
-                        setValue("customer", selectedProduct.customer);
-                    if (selectedProduct.reference)
-                        setValue("reference", selectedProduct.reference);
-                    if (selectedProduct.of)
-                        setValue("of", selectedProduct.of);
-                    if (selectedProduct.description)
-                        setValue("description", selectedProduct.description);
-                    if (selectedProduct.quantity)
-                        setValue("quantity", selectedProduct.quantity);
-                    if (selectedProduct.unitaryValue)
-                        setValue("unitaryValue", selectedProduct.unitaryValue);
-                    if (selectedProduct.status)
-                        setValue("status", selectedProduct.status);
-                    if (selectedProduct.amount)
-                        setValue("amount", selectedProduct.amount);
-                    if (selectedProduct.image)
-                        setValue("image", selectedProduct.image);
-
+                    setAction('Update');
                     setDisplayProductModal(true);
                 }}
                 onClickDeleteItem={() => {
@@ -174,7 +143,11 @@ function ProductPage() {
     }
 
     function balanceBodyTemplate(rowData: ProductModel) {
-        return rowData.amount?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        if(rowData.amount) {
+            return Number(rowData.amount)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        return 'Valor não informado';
     }
 
     function statusBodyTemplate(rowData: ProductModel) {
@@ -239,18 +212,13 @@ function ProductPage() {
             </div>
 
             <ProductModal
-                productModalText={productModalText}
                 displayProductModal={displayProductModal}
                 setDisplayProductModal={setDisplayProductModal}
                 product={product}
-                setProduct={setProduct}
                 customers={customers}
-                onClickSave={onSave}
-                control={control}
-                errors={errors}
-                handleSubmit={handleSubmit}
-                reset={reset}
-                setValue={setValue}
+                onSave={onSave}
+                action={action}
+                setAction={setAction}
             />
 
             <DeleteModal

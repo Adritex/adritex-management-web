@@ -3,7 +3,7 @@ import { CustomerModel } from "./customerModel";
 
 interface ProductProps {
     id: string;
-    customer: CustomerModel;
+    customer: CustomerModel | null;
     idCustomer: string;
     reference: string;
     of: string;
@@ -12,7 +12,7 @@ interface ProductProps {
     unitaryValue: number;
     amount: number;
     status: StatusType;
-    image: string | ArrayBuffer;
+    image: string | ArrayBuffer | null;
     date: Date | undefined;
 }
 
@@ -29,14 +29,14 @@ export class ProductModel {
     get reference() { return this.props.reference; }
     get of() { return this.props.of; }
     get description() { return this.props.description; }
-    get quantity() { return this.props.quantity; }
-    get unitaryValue() { return this.props.unitaryValue; }
-    get amount() { return this.props.amount; }
-    get status() { return this.props.status; }
+    get quantity(): number { return this.props.quantity; }
+    get unitaryValue(): number { return this.props.unitaryValue; }
+    get amount(): number { return this.props.amount; }
+    get status(): number { return this.props.status; }
     get image() { return this.props.image; }
     get date() { return this.props.date; }
 
-    set customer(customer: CustomerModel) { this.props.customer = customer; }
+    set customer(customer: CustomerModel | null) { this.props.customer = customer; }
     set idCustomer(idCustomer: string) { this.props.idCustomer = idCustomer; }
     set reference(reference: string) { this.props.reference = reference; }
     set of(of: string) { this.props.of = of; }
@@ -45,7 +45,7 @@ export class ProductModel {
     set unitaryValue(unitaryValue: number) { this.props.unitaryValue = unitaryValue; }
     set amount(amount: number) { this.props.amount = amount; }
     set status(status: StatusType) { this.props.status = status; }
-    set image(image: string | ArrayBuffer) { this.props.image = image; }
+    set image(image: string | ArrayBuffer | null) { this.props.image = image; }
     set date(date: Date | undefined) { this.props.date = date; }
  
     static empty() {
