@@ -33,12 +33,6 @@ export function Navbar() {
         } else if (userSession?.accessType == 1) {
             setPages([
                 { label: "Home", icon: 'pi pi-home', command: () => window.location.href = "/", },
-                {
-                    label: "Pedidos", icon: 'pi pi-shopping-cart',
-                    items: [
-                        { label: "Ordem de produção", command: () => window.location.href = "/pedidos/ordens", },
-                    ],
-                },
             ]);
         } else {
             setPages([
