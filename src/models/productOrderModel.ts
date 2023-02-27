@@ -33,7 +33,7 @@ export class ProductOrderModel {
             idProduct: "",
             product: ProductModel.empty(),
             order: 0,
-            priority: PriorityType.None,
+            priority: PriorityType.Low,
         });
     }
 
