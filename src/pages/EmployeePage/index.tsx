@@ -113,18 +113,23 @@ function EmployeePage() {
             method: "DELETE",
             user: userSession,
             body: JSON.stringify({ ids })
-        }).then(() => {
-            const filteredEmployees = employees.filter(employee =>
-                !ids.includes(employee.id));
+        }).then(response => {
+            var filteredEmployees = employees;
+
+            for(const id in ids) {
+                if(response.idsWithError.length == 0 || !response.idsWithError.includes(ids[id])) {
+                    filteredEmployees = filteredEmployees.filter(item => item.id != ids[id]);
+                }
+
+                toast.current.show({
+                    severity: response.error ? 'error' : 'success',
+                    summary: response.error ? 'Erro!' : 'Sucesso!',
+                    detail: response.error ? response.error : 'Os funcionários selecionados foram removidos com sucesso!',
+                    life: response.error ? 8000: 3000
+                });
+            }
 
             setEmployees(filteredEmployees);
-
-            toast.current.show({
-                severity: 'success',
-                summary: 'Sucesso!',
-                detail: 'Os funcionários selecionados foram removidos com sucesso!',
-                life: 3000
-            });
         });
     }
 
