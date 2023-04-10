@@ -63,6 +63,7 @@ function EmployeePage() {
                 onClickDeleteItem={() => {
                     setDisplayDeleteModal(true);
                 }}
+                otherButtons={() => {}}
             />
         );
     }

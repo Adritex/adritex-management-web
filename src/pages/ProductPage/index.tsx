@@ -98,6 +98,7 @@ function ProductPage() {
                 onClickDeleteItem={() => {
                     setDisplayDeleteModal(true);
                 }}
+                otherButtons={() => {}}
             />
         );
     }

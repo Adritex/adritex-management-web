@@ -64,6 +64,7 @@ function CustomerPage() {
                 onClickDeleteItem={() => {
                     setDisplayDeleteModal(true);
                 }}
+                otherButtons={() => {}}
             />
         );
     }

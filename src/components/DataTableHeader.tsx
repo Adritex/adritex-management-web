@@ -14,6 +14,7 @@ type DataTableHeaderProps = {
     showExportButtons: boolean,
     onClickExportPDF: () => void,
     onClickExportXLS: () => void,
+    otherButtons: () => any;
 }
 
 export function DataTableHeader(props: DataTableHeaderProps) {
@@ -40,13 +41,14 @@ export function DataTableHeader(props: DataTableHeaderProps) {
             );
         }
     }
-
+    
     return (
         <div className="flex justify-content-between align-items-center">
             <h5 className="m-0">{props.description}</h5>
             <div className="flex align-items-center gap-3">
                 <span className="p-buttonset">
                     {showExportButtons()}
+                    {props.otherButtons()}
                     <Button
                         label="Novo"
                         icon="pi pi-plus"

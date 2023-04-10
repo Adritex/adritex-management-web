@@ -75,6 +75,7 @@ function PaymentPage() {
                 onClickDeleteItem={() => {
                     setDisplayDeleteModal(true);
                 }}
+                otherButtons={() => {}}
             />
         );
     }

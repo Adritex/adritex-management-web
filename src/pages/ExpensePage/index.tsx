@@ -63,6 +63,7 @@ function ExpensePage() {
                 onClickDeleteItem={() => {
                     setDisplayDeleteModal(true);
                 }}
+                otherButtons={() => {}}
             />
         );
     }

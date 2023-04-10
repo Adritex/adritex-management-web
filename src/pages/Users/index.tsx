@@ -12,6 +12,8 @@ import { DataTableHeader } from "../../components/DataTableHeader";
 import { DeleteModal } from "../../components/modals/DeleteModal";
 import { UserInfoModel } from "../../models/userInfoModel";
 import { UserModal } from "../../components/modals/UserModal";
+import { Button } from "primereact/button";
+import { ChangeUserPasswordModal } from "../../components/modals/ChangeUserPasswordModal";
 
 function UsersPage() {
     const toast = useRef<any>(null);
@@ -20,6 +22,8 @@ function UsersPage() {
 
     const [displayUserModal, setDisplayUserModal] = useState<boolean>(false);
     const [action, setAction] = useState<'Insert' | 'Update'>('Insert');
+
+    const [displayChangeUserPasswordModal, setDisplayChangeUserPasswordModal] = useState<boolean>(false);
 
     const [users, setUsers] = useState<UserInfoModel[]>([]);
     const [user, setUser] = useState<UserInfoModel | null>(null);
@@ -66,13 +70,29 @@ function UsersPage() {
                 onClickDeleteItem={() => {
                     setDisplayDeleteModal(true);
                 }}
+                otherButtons={() => {
+                    return (
+                        <>
+                            <Button
+                                label="Alterar senha"
+                                icon="pi pi-wrench"
+                                disabled={!(selectedUsers.length == 1)}
+                                onClick={() => {
+                                    var selectedUser = UserInfoModel.clone(selectedUsers[0]);
+                                    setUser(selectedUser);
+                                    setDisplayChangeUserPasswordModal(true);
+                                }}
+                            />
+                        </>
+                    )
+                }}
             />
         );
     }
 
     function onSave(user: UserInfoModel) {
-        const filteredUsers = users.filter(item => item.id != user.id)   
-        
+        const filteredUsers = users.filter(item => item.id != user.id)
+
         setSelectedUsers([]);
         setUsers([...filteredUsers, user]);
 
@@ -80,6 +100,15 @@ function UsersPage() {
             severity: 'success',
             summary: 'Sucesso!',
             detail: 'O usuário foi salvo com sucesso!',
+            life: 3000
+        });
+    }
+
+    async function onPasswordChanged(user: UserInfoModel) {
+        toast.current.show({
+            severity: 'success',
+            summary: 'Sucesso!',
+            detail: 'Senha do usuário foi alterada com sucesso!',
             life: 3000
         });
     }
@@ -130,7 +159,7 @@ function UsersPage() {
 
     return (
         <>
-         <Toast ref={toast} />
+            <Toast ref={toast} />
             <div className="datatable">
                 <div className="datatable card">
                     <DataTable value={users} paginator className="p-datatable" header={renderDataTableHeader()} rows={10}
@@ -147,13 +176,20 @@ function UsersPage() {
                 </div>
             </div>
 
-            <UserModal 
-               displayUserModal={displayUserModal}
-               setDisplayUserModal={setDisplayUserModal}
-               user={user}
-               onSave={onSave}
-               action={action}
-               setAction={setAction}
+            <UserModal
+                displayUserModal={displayUserModal}
+                setDisplayUserModal={setDisplayUserModal}
+                user={user}
+                onSave={onSave}
+                action={action}
+                setAction={setAction}
+            />
+
+            <ChangeUserPasswordModal
+                displayChangeUserPasswordModal={displayChangeUserPasswordModal}
+                setDisplayChangeUserPasswordModal={setDisplayChangeUserPasswordModal}
+                user={user}
+                onPasswordChanged={onPasswordChanged}
             />
 
             <DeleteModal
