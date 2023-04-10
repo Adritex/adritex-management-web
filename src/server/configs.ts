@@ -3,6 +3,7 @@ const API_HOST = "http://localhost:8050/api";
 const CUSTOMER_ROUTE = `${API_HOST}/customers`;
 const EMPLOYEE_ROUTE = `${API_HOST}/employees`;
 const EXPENSE_ROUTE = `${API_HOST}/expenses`;
+const USER_ROUTE = `${API_HOST}/users`;
 const PAYROLLS_ROUTE = `${API_HOST}/payrolls`;
 const PRODUCT_ROUTE = `${API_HOST}/products`;
 const PRODUCT_ORDERS_ROUTE = `${API_HOST}/products/status`;
@@ -24,5 +25,6 @@ export {
     LOGIN_ROUTE,
     PING_ROUTE,
     DASHBOARD_ROUTE,
-    GOAL_ROUTE
+    GOAL_ROUTE,
+    USER_ROUTE
 }

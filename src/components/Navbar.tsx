@@ -12,6 +12,7 @@ export function Navbar() {
         if (userSession?.accessType == 0) {
             setPages([
                 { label: "Home", icon: 'pi pi-home', command: () => window.location.href = "/", },
+                { label: "Usuários", icon: 'pi pi-user', command: () => window.location.href = "/usuarios", },
                 { label: "Clientes", icon: 'pi pi-user', command: () => window.location.href = "/clientes", },
                 { label: "Funcionários", icon: 'pi pi-users', command: () => window.location.href = "/funcionarios", },
                 {

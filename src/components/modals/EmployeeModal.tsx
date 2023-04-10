@@ -44,7 +44,6 @@ export function EmployeeModal(props: EmployeeModalProps) {
             setValue('birthDate', new Date());
             setValue('active', true);
         } else {
-            console.log(props.employee)
             setMethod('PUT');
             setUrl(`${EMPLOYEE_ROUTE}/${props.employee?.id}`);
             setModalText('Alterar funcionário');
