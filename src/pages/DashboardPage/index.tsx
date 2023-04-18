@@ -34,10 +34,18 @@ function DashboardPage() {
     const [annualBilling, setAnnualBilling] = useState<AnnualBilling[]>();
 
     useEffect(() => {
+        var date = new Date();
+        var startDate = new Date(date.getFullYear(), date.getMonth(), 1);
+        var endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
         fetchServer({
             route: DASHBOARD_ROUTE,
-            method: "GET",
+            method: "PUT",
             user: userSession,
+            body: JSON.stringify({
+                startDate: startDate,
+                endDate: endDate,
+            })
         }).then(response => {
             setExpenses(response.expenses);
             setProducts(response.products);
