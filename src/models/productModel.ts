@@ -13,7 +13,7 @@ interface ProductProps {
     amount: number;
     status: StatusType;
     image: string | ArrayBuffer | null;
-    date: Date | undefined;
+    completionDate: Date | undefined;
 }
 
 export class ProductModel {
@@ -34,7 +34,7 @@ export class ProductModel {
     get amount(): number { return this.props.amount; }
     get status(): number { return this.props.status; }
     get image() { return this.props.image; }
-    get date() { return this.props.date; }
+    get completionDate() { return this.props.completionDate; }
 
     set customer(customer: CustomerModel | null) { this.props.customer = customer; }
     set idCustomer(idCustomer: string) { this.props.idCustomer = idCustomer; }
@@ -46,7 +46,7 @@ export class ProductModel {
     set amount(amount: number) { this.props.amount = amount; }
     set status(status: StatusType) { this.props.status = status; }
     set image(image: string | ArrayBuffer | null) { this.props.image = image; }
-    set date(date: Date | undefined) { this.props.date = date; }
+    set completionDate(date: Date | undefined) { this.props.completionDate = date; }
  
     static empty() {
         return new ProductModel({
@@ -61,7 +61,7 @@ export class ProductModel {
             amount: 0,
             status: StatusType.Pending,
             image: "",
-            date: undefined,
+            completionDate: undefined,
         });
     }
 
@@ -78,7 +78,7 @@ export class ProductModel {
             amount: product.amount,
             status: product.status,
             image: product.image,
-            date: product.date,
+            completionDate: product.completionDate,
         });
     }
 }

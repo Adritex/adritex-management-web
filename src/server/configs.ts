@@ -1,5 +1,5 @@
 const API_HOST = "http://191.252.179.165:8050/api";
-// const API_HOST = "http://localhost:8050/api";
+//const API_HOST = "http://localhost:8050/api";
 const CUSTOMER_ROUTE = `${API_HOST}/customers`;
 const EMPLOYEE_ROUTE = `${API_HOST}/employees`;
 const EXPENSE_ROUTE = `${API_HOST}/expenses`;

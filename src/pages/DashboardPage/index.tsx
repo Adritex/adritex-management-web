@@ -6,7 +6,7 @@ import { ColumnGroup } from 'primereact/columngroup';
 import { Row } from 'primereact/row';
 import { Chart } from 'primereact/chart';
 import { fetchServer } from "../../server";
-import { CUSTOMER_ROUTE, DASHBOARD_ROUTE } from "../../server/configs";
+import { DASHBOARD_ROUTE } from "../../server/configs";
 import { useAuth } from "../../contexts/authContext";
 
 interface ProductTable {
@@ -47,14 +47,18 @@ function DashboardPage() {
                 endDate: endDate,
             })
         }).then(response => {
-            setExpenses(response.expenses);
-            setProducts(response.products);
-
             let expensesValue = 0;
             let productsValue = 0;
 
-            response.expenses.forEach((expense: any) => expensesValue += Number(expense.value));
-            response.products.forEach((product: any) => productsValue += Number(product.amount));
+            if(response?.expenses) {
+                setExpenses(response.expenses);
+                response.expenses.forEach((expense: any) => expensesValue += Number(expense.value));
+            }
+
+            if(response?.products) {
+                setProducts(response.products);
+                response.products.forEach((product: any) => productsValue += Number(product.amount));
+            }
 
             setBasicData({
                 labels: ["Mês atual"],
@@ -73,19 +77,20 @@ function DashboardPage() {
             });
 
             const annual: AnnualBilling[] = [
-                { name: "Janeiro", value: response.annualBilling[0] },
-                { name: "Fevereiro", value: response.annualBilling[1] },
-                { name: "Março", value: response.annualBilling[2] },
-                { name: "Abril", value: response.annualBilling[3] },
-                { name: "Maio", value: response.annualBilling[4] },
-                { name: "Junho", value: response.annualBilling[5] },
-                { name: "Julho", value: response.annualBilling[6] },
-                { name: "Agosto", value: response.annualBilling[7] },
-                { name: "Setembro", value: response.annualBilling[8] },
-                { name: "Outubro", value: response.annualBilling[9] },
-                { name: "Novembro", value: response.annualBilling[10] },
-                { name: "Dezembro", value: response.annualBilling[11] },
+                { name: "Janeiro", value: response?.annualBilling ? response?.annualBilling[0] : 0 },
+                { name: "Fevereiro", value: response?.annualBilling ? response?.annualBilling[1] : 0},
+                { name: "Março", value: response?.annualBilling ? response?.annualBilling[2] : 0},
+                { name: "Abril", value: response?.annualBilling ? response?.annualBilling[3] : 0},
+                { name: "Maio", value: response?.annualBilling ? response?.annualBilling[4] : 0},
+                { name: "Junho", value: response?.annualBilling ? response?.annualBilling[5] : 0},
+                { name: "Julho", value: response?.annualBilling ? response?.annualBilling[6] : 0},
+                { name: "Agosto", value: response?.annualBilling ? response?.annualBilling[7] : 0},
+                { name: "Setembro", value: response?.annualBilling ? response?.annualBilling[8] : 0},
+                { name: "Outubro", value: response?.annualBilling ? response?.annualBilling[9] : 0},
+                { name: "Novembro", value: response?.annualBilling ? response?.annualBilling[10] : 0},
+                { name: "Dezembro", value: response?.annualBilling ? response?.annualBilling[11] : 0},
             ];
+            
             setAnnualBilling(annual);
 
             setAnnualBillingChart({

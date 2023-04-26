@@ -59,7 +59,7 @@ export function ConfirmFinishedOrderModal(props: ConfirmFinishedOrderProps) {
             breakpoints={{ '960px': '75vw' }}
             style={{ width: '40vw' }}
             onShow={() => {
-                setDate(null);
+                setDate(new Date());
             }}
             onHide={() => {
                 props.setDisplayConfirmFinishedOrderModal(false);

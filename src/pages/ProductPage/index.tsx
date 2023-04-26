@@ -164,7 +164,7 @@ function ProductPage() {
     }
 
     function dateBodyTemplate(rowData: ProductModel) {
-        return formatDate(rowData.date);
+        return formatDate(rowData.completionDate);
     }
 
     function formatDate(value: any) {
@@ -207,7 +207,7 @@ function ProductPage() {
                         <Column field="description" header="Descrição" sortable style={{ minWidth: '14rem' }} />
                         <Column field="amount" header="Valor total" sortable style={{ minWidth: '14rem' }} body={balanceBodyTemplate} />
                         <Column field="status" header="Situação" sortable style={{ minWidth: '14rem' }} body={statusBodyTemplate} />
-                        <Column field="date" header="Data" sortable style={{ minWidth: '14rem' }} body={dateBodyTemplate} />
+                        <Column field="completionDate" header="Data" sortable style={{ minWidth: '14rem' }} body={dateBodyTemplate} />
                     </DataTable>
                 </div>
             </div>
