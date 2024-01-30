@@ -1,8 +1,8 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState } from "react";
 import { ProductModel } from "../../models/productModel";
 import { ProductOrderModel } from "../../models/productOrderModel";
 import { StatusType } from "../../enums/statusType";
-import { PRODUCT_ORDERS_ROUTE, ORDERS_ROUTE, GOAL_ROUTE, CUSTOMER_ROUTE } from "../../server/configs";
+import { ORDERS_ROUTE, GOAL_ROUTE, CUSTOMER_ROUTE } from "../../server/configs";
 
 import { DataView } from 'primereact/dataview';
 import { Image } from "primereact/image";
@@ -27,8 +27,11 @@ function HomePage() {
     const [customers, setCustomers] = useState<CustomerModel[]>([]);
 
     useEffect(() => {
-        getValuesFromServer();
-        setInterval(getValuesFromServer, 60000);
+        if(customers.length > 0) {
+            getValuesFromServer();
+        }
+
+        setInterval(getValuesFromServer, 1000);
     }, []);
 
     function getValuesFromServer() {

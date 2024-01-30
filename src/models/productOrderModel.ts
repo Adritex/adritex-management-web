@@ -22,6 +22,7 @@ export class ProductOrderModel {
     get priority() { return this.props.priority; }
     get order() { return this.props.order; }
 
+    set id(id: string) { this.props.id = this.id; }
     set idProduct(idProduct: string) { this.props.idProduct = idProduct; }
     set product(product: ProductModel) { this.props.product = product; }
     set priority(priority: PriorityType) { this.props.priority = priority; }

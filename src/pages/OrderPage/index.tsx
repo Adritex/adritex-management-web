@@ -194,7 +194,6 @@ function OrderPage() {
             user: userSession,
             body: JSON.stringify({ date: date })
         }).then((response) => {
-            console.log(response);
             if (response?.success) {
                 const savedOrder = productOrders.find(item => item.id == response.productOrder);
                 setTarget(target.filter(item => item.id != savedOrder?.idProduct));
@@ -233,7 +232,17 @@ function OrderPage() {
                                             }
                                         })
                                     })
-                                }).then(() => {
+                                }).then((response: ProductOrderModel[]) => {
+                                    var changedProductOrders = productOrders.map(productOrder => {
+                                        var responseProduct = response.find(item => item.idProduct == productOrder.idProduct);
+                                        if(responseProduct != null) {
+                                            productOrder.id = responseProduct.id;
+                                        }
+                                        return productOrder;
+                                    });
+
+                                    setProductOrders(changedProductOrders);
+
                                     toast.current.show({
                                         severity: 'success',
                                         summary: 'Sucesso!',
